@@ -1,0 +1,222 @@
+2025-08-25 13:56:33,809 - extractor - INFO - Processing PDF upload request
+2025-08-25 13:56:33,809 - extractor - DEBUG - Received vendor_id: 2
+2025-08-25 13:56:33,809 - extractor - DEBUG - Received file: DFIPL-WNEL-001-S1.pdf
+2025-08-25 13:56:33,919 - extractor - INFO - Loading config for vendor: jsw
+2025-08-25 13:56:33,919 - extractor - ERROR - Vendor config not found. Available configs: ['citic_steel.json', 'hengrum_steel.json', 'iraeta_steel.json', 'jsw_steel.json', 'posco_steel.json', 'citic_steel.json', 'jsw_steel.json']
+2025-08-25 13:56:33,924 - extractor - ERROR - Error loading vendor config: ['Vendor configuration file not found for JSW']
+2025-08-25 13:57:22,021 - extractor - INFO - Processing PDF upload request
+2025-08-25 13:57:22,023 - extractor - DEBUG - Received vendor_id: 2
+2025-08-25 13:57:22,024 - extractor - DEBUG - Received file: DFIPL-WNEL-001-S1.pdf
+2025-08-25 13:57:22,134 - extractor - INFO - Loading config for vendor: jsw
+2025-08-25 13:57:22,135 - extractor - ERROR - Vendor config not found. Available configs: ['citic_steel.json', 'hengrum_steel.json', 'iraeta_steel.json', 'jsw_steel.json', 'posco_steel.json', 'citic_steel.json', 'jsw_steel.json']
+2025-08-25 13:57:22,137 - extractor - ERROR - Error loading vendor config: ['Vendor configuration file not found for JSW']
+2025-08-25 14:18:38,044 - extractor - INFO - Processing PDF upload request
+2025-08-25 14:18:38,046 - extractor - DEBUG - Received vendor_id: 2
+2025-08-25 14:18:38,048 - extractor - DEBUG - Received file: DFIPL-WNEL-001-S1.pdf
+2025-08-25 14:18:38,179 - extractor - INFO - Loading config for vendor: jsw
+2025-08-25 14:18:38,180 - extractor - ERROR - Vendor config not found. Available configs: ['citic_steel.json', 'hengrum_steel.json', 'iraeta_steel.json', 'jsw_steel.json', 'posco_steel.json', 'citic_steel.json', 'jsw_steel.json']
+2025-08-25 14:18:38,182 - extractor - ERROR - Error loading vendor config: ['Vendor configuration file not found for JSW']
+2025-08-25 15:23:42,666 - extractor - INFO - Processing PDF upload request
+2025-08-25 15:23:42,668 - extractor - DEBUG - Received vendor_id: 1
+2025-08-25 15:23:42,669 - extractor - DEBUG - Received file: DFIPL-WNEL-001-S1.pdf
+2025-08-25 15:23:42,815 - extractor - INFO - Loading config for vendor: jsw
+2025-08-25 15:23:42,827 - extractor - ERROR - Vendor config not found. Available configs: ['citic_steel.json', 'hengrum_steel.json', 'iraeta_steel.json', 'jsw_steel.json', 'posco_steel.json', 'citic_steel.json', 'citic_steel_d6XAAlc.json', 'jsw_steel.json', 'jsw_steel_EnVeRuy.json']
+2025-08-25 15:23:42,832 - extractor - ERROR - Error loading vendor config: ['Vendor configuration file not found for JSW']
+2025-08-25 15:37:09,535 - extractor - INFO - Processing PDF upload request
+2025-08-25 15:37:09,537 - extractor - DEBUG - Received vendor_id: 1
+2025-08-25 15:37:09,538 - extractor - DEBUG - Received file: DFIPL-WNEL-001-S1.pdf
+2025-08-25 15:37:09,691 - extractor - INFO - Loading config for vendor: jsw
+2025-08-25 15:37:09,696 - extractor - INFO - Using config file: /code/extractor/vendor_configs/jsw_steel.json
+2025-08-25 15:37:09,700 - extractor - INFO - Successfully loaded vendor config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 15:37:09,701 - extractor - INFO - === Starting Extraction Process ===
+2025-08-25 15:37:09,702 - extractor - INFO - PDF Path: /code/media/uploads/DFIPL-WNEL-001-S1_dUsKQtl.pdf
+2025-08-25 15:37:09,702 - extractor - INFO - Vendor: JSW Steel
+2025-08-25 15:37:09,703 - extractor - INFO - Vendor Config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 15:37:09,706 - extractor - INFO - File size: 13184794 bytes
+2025-08-25 15:37:09,708 - extractor - INFO - Output directory ready: /code/media/extracted
+2025-08-25 15:37:09,709 - extractor - INFO - Queueing extraction task...
+2025-08-25 15:37:09,758 - extractor - INFO - Extraction task queued with ID: 73176f18-1bff-416c-92c2-095f4b08105b
+2025-08-25 15:37:09,769 - extractor.tasks - INFO - Starting PDF processing for uploads/DFIPL-WNEL-001-S1_dUsKQtl.pdf
+2025-08-25 15:37:09,771 - extractor.utils.extractor - INFO - === Starting PDF Extraction ===
+2025-08-25 15:37:09,772 - extractor.utils.extractor - INFO - PDF Path: /code/media/uploads/DFIPL-WNEL-001-S1_dUsKQtl.pdf
+2025-08-25 15:37:09,773 - extractor.utils.extractor - INFO - Vendor Config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 15:37:09,774 - extractor.utils.extractor - INFO - Output Folder: /code/media/extracted
+2025-08-25 15:38:06,682 - extractor - INFO - Processing PDF upload request
+2025-08-25 15:38:06,684 - extractor - DEBUG - Received vendor_id: 1
+2025-08-25 15:38:06,685 - extractor - DEBUG - Received file: DFIPL-WNEL-001-S1-3-9.pdf
+2025-08-25 15:38:06,717 - extractor - INFO - Loading config for vendor: jsw
+2025-08-25 15:38:06,721 - extractor - INFO - Using config file: /code/extractor/vendor_configs/jsw_steel.json
+2025-08-25 15:38:06,727 - extractor - INFO - Successfully loaded vendor config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 15:38:06,728 - extractor - INFO - === Starting Extraction Process ===
+2025-08-25 15:38:06,731 - extractor - INFO - PDF Path: /code/media/uploads/DFIPL-WNEL-001-S1-3-9.pdf
+2025-08-25 15:38:06,737 - extractor - INFO - Vendor: JSW Steel
+2025-08-25 15:38:06,738 - extractor - INFO - Vendor Config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 15:38:06,741 - extractor - INFO - File size: 1141057 bytes
+2025-08-25 15:38:06,745 - extractor - INFO - Output directory ready: /code/media/extracted
+2025-08-25 15:38:06,746 - extractor - INFO - Queueing extraction task...
+2025-08-25 15:38:06,749 - extractor - INFO - Extraction task queued with ID: 80430451-6898-470f-ae89-14d537637a21
+2025-08-25 15:38:06,762 - extractor.tasks - INFO - Starting PDF processing for uploads/DFIPL-WNEL-001-S1-3-9.pdf
+2025-08-25 15:38:06,764 - extractor.utils.extractor - INFO - === Starting PDF Extraction ===
+2025-08-25 15:38:06,766 - extractor.utils.extractor - INFO - PDF Path: /code/media/uploads/DFIPL-WNEL-001-S1-3-9.pdf
+2025-08-25 15:38:06,767 - extractor.utils.extractor - INFO - Vendor Config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 15:38:06,768 - extractor.utils.extractor - INFO - Output Folder: /code/media/extracted
+2025-08-25 15:38:08,565 - extractor.tasks - WARNING - No data extracted from PDF
+2025-08-25 15:38:11,705 - extractor.tasks - WARNING - No data extracted from PDF
+2025-08-25 15:50:45,429 - extractor - INFO - Processing PDF upload request
+2025-08-25 15:50:45,430 - extractor - DEBUG - Received vendor_id: 2
+2025-08-25 15:50:45,431 - extractor - DEBUG - Received file: Binder1.pdf
+2025-08-25 15:50:45,552 - extractor - INFO - Loading config for vendor: citic
+2025-08-25 15:50:45,554 - extractor - INFO - Using config file: /code/extractor/vendor_configs/citic_steel.json
+2025-08-25 15:50:45,558 - extractor - INFO - Successfully loaded vendor config: {'vendor_id': 'citic', 'vendor_name': 'CITIC Pacific Special Steel', 'fields': {'PLATE_NO': '\\bT5\\d{9}\\b', 'HEAT_NO': '\\bS[0-9A-Z]{6,10}\\b', 'TEST_CERT_NO': 'CERTIFICATE NO\\.?\\s*[:：]?\\s*([A-Z0-9\\s\\-]+)'}}
+2025-08-25 15:50:45,558 - extractor - INFO - === Starting Extraction Process ===
+2025-08-25 15:50:45,559 - extractor - INFO - PDF Path: /code/media/uploads/Binder1_JH0ldoV.pdf
+2025-08-25 15:50:45,559 - extractor - INFO - Vendor: CITIC Steel
+2025-08-25 15:50:45,560 - extractor - INFO - Vendor Config: {'vendor_id': 'citic', 'vendor_name': 'CITIC Pacific Special Steel', 'fields': {'PLATE_NO': '\\bT5\\d{9}\\b', 'HEAT_NO': '\\bS[0-9A-Z]{6,10}\\b', 'TEST_CERT_NO': 'CERTIFICATE NO\\.?\\s*[:：]?\\s*([A-Z0-9\\s\\-]+)'}}
+2025-08-25 15:50:45,564 - extractor - INFO - File size: 12639122 bytes
+2025-08-25 15:50:45,567 - extractor - INFO - Output directory ready: /code/media/extracted
+2025-08-25 15:50:45,568 - extractor - INFO - Queueing extraction task...
+2025-08-25 15:50:45,626 - extractor - INFO - Extraction task queued with ID: 0c4a38bd-3339-4bc9-8cb4-c6a0f0d00be9
+2025-08-25 15:50:45,644 - extractor.tasks - INFO - Starting PDF processing for uploads/Binder1_JH0ldoV.pdf
+2025-08-25 15:50:45,647 - extractor.utils.extractor - INFO - === Starting PDF Extraction ===
+2025-08-25 15:50:45,648 - extractor.utils.extractor - INFO - PDF Path: /code/media/uploads/Binder1_JH0ldoV.pdf
+2025-08-25 15:50:45,649 - extractor.utils.extractor - INFO - Vendor Config: {'vendor_id': 'citic', 'vendor_name': 'CITIC Pacific Special Steel', 'fields': {'PLATE_NO': '\\bT5\\d{9}\\b', 'HEAT_NO': '\\bS[0-9A-Z]{6,10}\\b', 'TEST_CERT_NO': 'CERTIFICATE NO\\.?\\s*[:：]?\\s*([A-Z0-9\\s\\-]+)'}}
+2025-08-25 15:50:45,650 - extractor.utils.extractor - INFO - Output Folder: /code/media/extracted
+2025-08-25 15:52:50,716 - extractor.tasks - WARNING - No data extracted from PDF
+2025-08-25 16:03:48,831 - extractor - INFO - Processing PDF upload request
+2025-08-25 16:03:48,837 - extractor - DEBUG - Received vendor_id: 1
+2025-08-25 16:03:48,839 - extractor - DEBUG - Received file: DFIPL-WNEL-001-S1-3-9.pdf
+2025-08-25 16:03:48,959 - extractor - INFO - Loading config for vendor: jsw
+2025-08-25 16:03:48,969 - extractor - INFO - Using config file: /code/extractor/vendor_configs/jsw_steel.json
+2025-08-25 16:03:48,982 - extractor - INFO - Successfully loaded vendor config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 16:03:48,985 - extractor - INFO - === Starting Extraction Process ===
+2025-08-25 16:03:48,988 - extractor - INFO - PDF Path: /code/media/uploads/DFIPL-WNEL-001-S1-3-9_RODzVUm.pdf
+2025-08-25 16:03:48,990 - extractor - INFO - Vendor: JSW Steel
+2025-08-25 16:03:48,992 - extractor - INFO - Vendor Config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 16:03:49,005 - extractor - INFO - File size: 1141057 bytes
+2025-08-25 16:03:49,018 - extractor - INFO - Output directory ready: /code/media/extracted
+2025-08-25 16:03:49,020 - extractor - INFO - Queueing extraction task...
+2025-08-25 16:03:49,200 - extractor - INFO - Extraction task queued with ID: 70e5bb5c-d0f9-46ec-ae48-2ade680bf8ae
+2025-08-25 16:03:49,224 - extractor.tasks - INFO - Starting PDF processing for uploads/DFIPL-WNEL-001-S1-3-9_RODzVUm.pdf
+2025-08-25 16:03:49,226 - extractor.utils.extractor - INFO - === Starting PDF Extraction ===
+2025-08-25 16:03:49,227 - extractor.utils.extractor - INFO - PDF Path: /code/media/uploads/DFIPL-WNEL-001-S1-3-9_RODzVUm.pdf
+2025-08-25 16:03:49,228 - extractor.utils.extractor - INFO - Vendor Config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 16:03:49,229 - extractor.utils.extractor - INFO - Output Folder: /code/media/extracted
+2025-08-25 16:03:51,188 - extractor.tasks - WARNING - No data extracted from PDF
+2025-08-25 16:06:24,624 - extractor - INFO - Processing PDF upload request
+2025-08-25 16:06:24,626 - extractor - DEBUG - Received vendor_id: 1
+2025-08-25 16:06:24,627 - extractor - DEBUG - Received file: DFIPL-WNEL-001-S1.pdf
+2025-08-25 16:06:24,834 - extractor - INFO - Loading config for vendor: jsw
+2025-08-25 16:06:24,837 - extractor - INFO - Using config file: /code/extractor/vendor_configs/jsw_steel.json
+2025-08-25 16:06:24,840 - extractor - INFO - Successfully loaded vendor config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 16:06:24,841 - extractor - INFO - === Starting Extraction Process ===
+2025-08-25 16:06:24,841 - extractor - INFO - PDF Path: /code/media/uploads/DFIPL-WNEL-001-S1_88pehMX.pdf
+2025-08-25 16:06:24,842 - extractor - INFO - Vendor: JSW Steel
+2025-08-25 16:06:24,842 - extractor - INFO - Vendor Config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 16:06:24,846 - extractor - INFO - File size: 13184794 bytes
+2025-08-25 16:06:24,849 - extractor - INFO - Output directory ready: /code/media/extracted
+2025-08-25 16:06:24,849 - extractor - INFO - Queueing extraction task...
+2025-08-25 16:06:24,859 - extractor - INFO - Extraction task queued with ID: eac55aec-e244-453e-b29c-c665125b08c7
+2025-08-25 16:06:24,866 - extractor.tasks - INFO - Starting PDF processing for uploads/DFIPL-WNEL-001-S1_88pehMX.pdf
+2025-08-25 16:06:24,867 - extractor.utils.extractor - INFO - === Starting PDF Extraction ===
+2025-08-25 16:06:24,868 - extractor.utils.extractor - INFO - PDF Path: /code/media/uploads/DFIPL-WNEL-001-S1_88pehMX.pdf
+2025-08-25 16:06:24,868 - extractor.utils.extractor - INFO - Vendor Config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 16:06:24,869 - extractor.utils.extractor - INFO - Output Folder: /code/media/extracted
+2025-08-25 16:07:33,957 - extractor.tasks - WARNING - No data extracted from PDF
+2025-08-25 16:43:34,883 - extractor - INFO - Processing PDF upload request
+2025-08-25 16:43:34,885 - extractor - DEBUG - Received vendor_id: 1
+2025-08-25 16:43:34,886 - extractor - DEBUG - Received file: DFIPL-WNEL-001-S1.pdf
+2025-08-25 16:43:35,018 - extractor - INFO - Loading config for vendor: jsw
+2025-08-25 16:43:35,020 - extractor - INFO - Using config file: /code/extractor/vendor_configs/jsw_steel.json
+2025-08-25 16:43:35,023 - extractor - INFO - Successfully loaded vendor config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 16:43:35,024 - extractor - INFO - === Starting Extraction Process ===
+2025-08-25 16:43:35,025 - extractor - INFO - PDF Path: /code/media/uploads/DFIPL-WNEL-001-S1_f0QYede.pdf
+2025-08-25 16:43:35,025 - extractor - INFO - Vendor: JSW Steel
+2025-08-25 16:43:35,026 - extractor - INFO - Vendor Config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 16:43:35,029 - extractor - INFO - File size: 13184794 bytes
+2025-08-25 16:43:35,032 - extractor - INFO - Output directory ready: /code/media/extracted
+2025-08-25 16:43:35,033 - extractor - INFO - Queueing extraction task...
+2025-08-25 16:43:35,089 - extractor - INFO - Extraction task queued with ID: fe3ac29c-236b-4519-abe8-d892ee0ab468
+2025-08-25 16:43:35,102 - extractor.tasks - INFO - Starting PDF processing for uploads/DFIPL-WNEL-001-S1_f0QYede.pdf
+2025-08-25 16:43:35,105 - extractor.utils.extractor - INFO - === Starting PDF Extraction ===
+2025-08-25 16:43:35,106 - extractor.utils.extractor - INFO - PDF Path: /code/media/uploads/DFIPL-WNEL-001-S1_f0QYede.pdf
+2025-08-25 16:43:35,107 - extractor.utils.extractor - INFO - Vendor Config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 16:43:35,109 - extractor.utils.extractor - INFO - Output Folder: /code/media/extracted
+2025-08-25 16:44:44,156 - extractor.tasks - WARNING - No data extracted from PDF
+2025-08-25 16:47:47,760 - extractor - INFO - Processing PDF upload request
+2025-08-25 16:47:47,761 - extractor - DEBUG - Received vendor_id: 3
+2025-08-25 16:47:47,762 - extractor - DEBUG - Received file: MTC-1-80.pdf
+2025-08-25 16:47:47,929 - extractor - INFO - Loading config for vendor: posco
+2025-08-25 16:47:47,931 - extractor - INFO - Using config file: /code/extractor/vendor_configs/posco_steel.json
+2025-08-25 16:47:47,935 - extractor - ERROR - Error loading vendor config: ['Invalid vendor config: missing patterns for PLATE_NO, TEST_CERT_NO']
+2025-08-25 16:47:58,804 - extractor - INFO - Processing PDF upload request
+2025-08-25 16:47:58,806 - extractor - DEBUG - Received vendor_id: 2
+2025-08-25 16:47:58,806 - extractor - DEBUG - Received file: MTC-1-80.pdf
+2025-08-25 16:47:59,004 - extractor - INFO - Loading config for vendor: citic
+2025-08-25 16:47:59,007 - extractor - INFO - Using config file: /code/extractor/vendor_configs/citic_steel.json
+2025-08-25 16:47:59,012 - extractor - INFO - Successfully loaded vendor config: {'vendor_id': 'citic', 'vendor_name': 'CITIC Pacific Special Steel', 'fields': {'PLATE_NO': '\\bT5\\d{9}\\b', 'HEAT_NO': '\\bS[0-9A-Z]{6,10}\\b', 'TEST_CERT_NO': 'CERTIFICATE NO\\.?\\s*[:：]?\\s*([A-Z0-9\\s\\-]+)'}}
+2025-08-25 16:47:59,013 - extractor - INFO - === Starting Extraction Process ===
+2025-08-25 16:47:59,013 - extractor - INFO - PDF Path: /code/media/uploads/MTC-1-80_yCd1Cic.pdf
+2025-08-25 16:47:59,014 - extractor - INFO - Vendor: CITIC Steel
+2025-08-25 16:47:59,015 - extractor - INFO - Vendor Config: {'vendor_id': 'citic', 'vendor_name': 'CITIC Pacific Special Steel', 'fields': {'PLATE_NO': '\\bT5\\d{9}\\b', 'HEAT_NO': '\\bS[0-9A-Z]{6,10}\\b', 'TEST_CERT_NO': 'CERTIFICATE NO\\.?\\s*[:：]?\\s*([A-Z0-9\\s\\-]+)'}}
+2025-08-25 16:47:59,020 - extractor - INFO - File size: 19812918 bytes
+2025-08-25 16:47:59,026 - extractor - INFO - Output directory ready: /code/media/extracted
+2025-08-25 16:47:59,027 - extractor - INFO - Queueing extraction task...
+2025-08-25 16:47:59,030 - extractor - INFO - Extraction task queued with ID: ddad61f2-4f8c-4c8b-9b54-cc5f4e840dc8
+2025-08-25 16:47:59,043 - extractor.tasks - INFO - Starting PDF processing for uploads/MTC-1-80_yCd1Cic.pdf
+2025-08-25 16:47:59,045 - extractor.utils.extractor - INFO - === Starting PDF Extraction ===
+2025-08-25 16:47:59,046 - extractor.utils.extractor - INFO - PDF Path: /code/media/uploads/MTC-1-80_yCd1Cic.pdf
+2025-08-25 16:47:59,047 - extractor.utils.extractor - INFO - Vendor Config: {'vendor_id': 'citic', 'vendor_name': 'CITIC Pacific Special Steel', 'fields': {'PLATE_NO': '\\bT5\\d{9}\\b', 'HEAT_NO': '\\bS[0-9A-Z]{6,10}\\b', 'TEST_CERT_NO': 'CERTIFICATE NO\\.?\\s*[:：]?\\s*([A-Z0-9\\s\\-]+)'}}
+2025-08-25 16:47:59,049 - extractor.utils.extractor - INFO - Output Folder: /code/media/extracted
+2025-08-25 16:48:10,374 - extractor - INFO - Processing PDF upload request
+2025-08-25 16:48:10,376 - extractor - DEBUG - Received vendor_id: 3
+2025-08-25 16:48:10,380 - extractor - DEBUG - Received file: MTC-1-80.pdf
+2025-08-25 16:48:10,663 - extractor - INFO - Loading config for vendor: posco
+2025-08-25 16:48:10,669 - extractor - INFO - Using config file: /code/extractor/vendor_configs/posco_steel.json
+2025-08-25 16:48:10,678 - extractor - ERROR - Error loading vendor config: ['Invalid vendor config: missing patterns for PLATE_NO, TEST_CERT_NO']
+2025-08-25 16:50:16,050 - extractor - INFO - Processing PDF upload request
+2025-08-25 16:50:16,052 - extractor - DEBUG - Received vendor_id: 3
+2025-08-25 16:50:16,053 - extractor - DEBUG - Received file: MTC-1-80.pdf
+2025-08-25 16:50:16,376 - extractor - INFO - Loading config for vendor: posco
+2025-08-25 16:50:16,379 - extractor - INFO - Using config file: /code/extractor/vendor_configs/posco_steel.json
+2025-08-25 16:50:16,385 - extractor - ERROR - Error loading vendor config: ['Invalid vendor config: missing patterns for PLATE_NO, TEST_CERT_NO']
+2025-08-25 16:53:59,068 - extractor.tasks - WARNING - No data extracted from PDF
+2025-08-25 22:45:58,252 - extractor - INFO - Processing PDF upload request
+2025-08-25 22:45:58,256 - extractor - DEBUG - Received vendor_id: 1
+2025-08-25 22:45:58,257 - extractor - DEBUG - Received file: DFIPL-WNEL-001-S1.pdf
+2025-08-25 22:45:58,382 - extractor - INFO - Loading config for vendor: jsw
+2025-08-25 22:45:58,385 - extractor - INFO - Using config file: /code/extractor/vendor_configs/jsw_steel.json
+2025-08-25 22:45:58,388 - extractor - INFO - Successfully loaded vendor config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 22:45:58,389 - extractor - INFO - === Starting Extraction Process ===
+2025-08-25 22:45:58,389 - extractor - INFO - PDF Path: /code/media/uploads/DFIPL-WNEL-001-S1_tADfkaT.pdf
+2025-08-25 22:45:58,390 - extractor - INFO - Vendor: JSW Steel
+2025-08-25 22:45:58,391 - extractor - INFO - Vendor Config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 22:45:58,394 - extractor - INFO - File size: 13184794 bytes
+2025-08-25 22:45:58,397 - extractor - INFO - Output directory ready: /code/media/extracted
+2025-08-25 22:45:58,397 - extractor - INFO - Queueing extraction task...
+2025-08-25 22:45:58,500 - extractor - INFO - Extraction task queued with ID: 5d68d05b-7148-4053-895c-433d0d0b5ab1
+2025-08-25 22:45:58,615 - extractor.tasks - INFO - Starting PDF processing for uploads/DFIPL-WNEL-001-S1_tADfkaT.pdf
+2025-08-25 22:45:58,622 - extractor.utils.extractor - INFO - === Starting PDF Extraction ===
+2025-08-25 22:45:58,623 - extractor.utils.extractor - INFO - PDF Path: /code/media/uploads/DFIPL-WNEL-001-S1_tADfkaT.pdf
+2025-08-25 22:45:58,625 - extractor.utils.extractor - INFO - Vendor Config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-25 22:45:58,626 - extractor.utils.extractor - INFO - Output Folder: /code/media/extracted
+2025-08-25 22:46:59,123 - extractor.tasks - WARNING - No data extracted from PDF
+2025-08-26 10:40:46,500 - extractor - INFO - Processing PDF upload request
+2025-08-26 10:40:46,507 - extractor - DEBUG - Received vendor_id: 1
+2025-08-26 10:40:46,509 - extractor - DEBUG - Received file: DFIPL-WNEL-001-S1-3-9.pdf
+2025-08-26 10:40:46,602 - extractor - INFO - Loading config for vendor: jsw
+2025-08-26 10:40:46,606 - extractor - INFO - Using config file: /code/extractor/vendor_configs/jsw_steel.json
+2025-08-26 10:40:46,615 - extractor - INFO - Successfully loaded vendor config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-26 10:40:46,616 - extractor - INFO - === Starting Extraction Process ===
+2025-08-26 10:40:46,618 - extractor - INFO - PDF Path: /code/media/uploads/DFIPL-WNEL-001-S1-3-9_K272bak.pdf
+2025-08-26 10:40:46,619 - extractor - INFO - Vendor: JSW Steel
+2025-08-26 10:40:46,621 - extractor - INFO - Vendor Config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-26 10:40:46,629 - extractor - INFO - File size: 1141057 bytes
+2025-08-26 10:40:46,634 - extractor - INFO - Output directory ready: /code/media/extracted
+2025-08-26 10:40:46,634 - extractor - INFO - Queueing extraction task...
+2025-08-26 10:40:46,698 - extractor - INFO - Extraction task queued with ID: 707c2ca3-7cb3-41c4-808d-a7dc602d9586
+2025-08-26 10:40:46,715 - extractor.tasks - INFO - Starting PDF processing for uploads/DFIPL-WNEL-001-S1-3-9_K272bak.pdf
+2025-08-26 10:40:46,719 - extractor.utils.extractor - INFO - === Starting PDF Extraction ===
+2025-08-26 10:40:46,720 - extractor.utils.extractor - INFO - PDF Path: /code/media/uploads/DFIPL-WNEL-001-S1-3-9_K272bak.pdf
+2025-08-26 10:40:46,722 - extractor.utils.extractor - INFO - Vendor Config: {'vendor_id': 'jsw', 'vendor_name': 'JSW Steel', 'fields': {'PLATE_NO': '\\b\\d{2}[A-Z]{2}\\d{4}[A-Z]\\d\\b', 'HEAT_NO': '\\b[A-Z]\\d{6}\\b', 'TEST_CERT_NO': 'TEST CERTIFICATE NO\\.\\s*:\\s*([A-Z0-9\\/\\-]+)'}}
+2025-08-26 10:40:46,725 - extractor.utils.extractor - INFO - Output Folder: /code/media/extracted
+2025-08-26 10:40:48,887 - extractor.tasks - WARNING - No data extracted from PDF

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Upload</title>
+</head>
+<body>
+    <h1>Upload PDF and Extract Data</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Upload PDF -->
+        <label for="pdf">Choose PDF:</label>
+        <input type="file" name="pdf" accept="application/pdf" required><br><br>
+
+        <!-- Select Vendor -->
+        <label for="vendor">Select Vendor:</label>
+        <select name="vendor" required>
+            {% for vendor in vendors %}
+                <option value="{{ vendor.id }}">{{ vendor.name }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <!-- Extract Button -->
+        <button type="submit">Extract Data</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,60 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "0.0.0.0:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      - DJANGO_SETTINGS_MODULE=extractor_project.settings
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DATABASE_URL=postgres://extractor_user:strongpassword123@db:5432/extractor_db
+
+  celery:
+    build: .
+    command: celery -A extractor_project worker -l INFO
+    volumes:
+      - .:/code
+    depends_on:
+      web:
+        condition: service_started
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
+    environment:
+      - DJANGO_SETTINGS_MODULE=extractor_project.settings
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DATABASE_URL=postgres://extractor_user:strongpassword123@db:5432/extractor_db
+
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=extractor_db
+      - POSTGRES_USER=extractor_user
+      - POSTGRES_PASSWORD=strongpassword123
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U extractor_user -d extractor_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:6
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:

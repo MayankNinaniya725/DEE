@@ -1,0 +1,9 @@
+{
+  "vendor_id": "hengrun",
+  "vendor_name": "Jiangyin Hengrun Ring Forging Co., Ltd.",
+  "fields": {
+    "PLATE_NO": "\\b\\d-\\d{4}\\b",
+    "HEAT_NO": "\\bS\\d{9}\\w?\\b",
+    "TEST_CERT_NO": "Certificate No\\.?[:：]?\\s*([A-Z0-9]+)"
+  }
+}

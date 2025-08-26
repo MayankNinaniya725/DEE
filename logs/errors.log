@@ -1,0 +1,335 @@
+2025-08-24 22:44:40,584 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\utils\extractor.py changed, reloading.
+2025-08-24 22:44:54,229 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\utils\extractor.py changed, reloading.
+2025-08-24 22:46:13,622 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\utils\extractor.py changed, reloading.
+2025-08-25 11:25:58,054 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 11:26:54,755 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\urls.py changed, reloading.
+2025-08-25 11:29:44,860 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\urls.py changed, reloading.
+2025-08-25 11:32:10,347 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor_project\urls.py changed, reloading.
+2025-08-25 11:34:17,889 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\models.py changed, reloading.
+2025-08-25 11:37:58,650 - ERROR - Internal Server Error: /dashboard/
+Traceback (most recent call last):
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py", line 8, in dashboard_view
+    return render(request, 'dashboard.html')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: dashboard.html
+2025-08-25 11:43:30,274 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 11:44:29,895 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor_project\settings.py changed, reloading.
+2025-08-25 11:44:35,665 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor_project\settings.py changed, reloading.
+2025-08-25 12:01:03,195 - WARNING - Not Found: /media/uploads/DFIPL-WNEL-001-S1.pdf
+2025-08-25 12:12:47,479 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 12:12:49,862 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 12:37:01,575 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor_project\urls.py changed, reloading.
+2025-08-25 12:37:58,227 - ERROR - Internal Server Error: /dashboard/
+Traceback (most recent call last):
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py", line 13, in dashboard
+    return render(request, "dashboard.html", {"data": data})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: dashboard.html
+2025-08-25 12:38:13,034 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor_project\urls.py changed, reloading.
+2025-08-25 12:38:13,604 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor_project\urls.py changed, reloading.
+2025-08-25 12:38:17,651 - ERROR - Internal Server Error: /dashboard/
+Traceback (most recent call last):
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py", line 13, in dashboard
+    return render(request, "dashboard.html", {"data": data})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\loader.py", line 19, in get_template
+    raise TemplateDoesNotExist(template_name, chain=chain)
+django.template.exceptions.TemplateDoesNotExist: dashboard.html
+2025-08-25 12:39:01,599 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 12:39:02,224 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 12:43:58,663 - ERROR - Internal Server Error: /upload/
+Traceback (most recent call last):
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py", line 59, in upload_pdf
+    extracted_info = extract_pdf_data(uploaded_pdf.file.path, vendor)
+                     ^^^^^^^^^^^^^^^^
+NameError: name 'extract_pdf_data' is not defined
+2025-08-25 12:44:11,847 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 12:44:12,099 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 12:44:46,455 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 12:44:46,770 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 12:47:01,826 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 12:47:02,043 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 12:49:01,913 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor_project\settings.py changed, reloading.
+2025-08-25 12:49:02,733 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor_project\settings.py changed, reloading.
+2025-08-25 12:49:14,180 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor_project\urls.py changed, reloading.
+2025-08-25 12:49:14,431 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor_project\urls.py changed, reloading.
+2025-08-25 12:49:30,129 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\models.py changed, reloading.
+2025-08-25 12:49:30,897 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\models.py changed, reloading.
+2025-08-25 12:52:43,376 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor_project\settings.py changed, reloading.
+2025-08-25 12:52:43,721 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor_project\settings.py changed, reloading.
+2025-08-25 12:53:05,343 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\admin.py changed, reloading.
+2025-08-25 12:53:05,430 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\admin.py changed, reloading.
+2025-08-25 12:55:35,559 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor_project\settings.py changed, reloading.
+2025-08-25 12:55:35,613 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor_project\settings.py changed, reloading.
+2025-08-25 12:55:35,848 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor_project\settings.py changed, reloading.
+2025-08-25 12:56:28,887 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor_project\urls.py changed, reloading.
+2025-08-25 12:56:28,919 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor_project\settings.py changed, reloading.
+2025-08-25 12:56:29,509 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\admin.py changed, reloading.
+2025-08-25 12:59:41,688 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 12:59:41,715 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 12:59:42,269 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:00:08,116 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:00:09,096 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:00:09,143 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:00:18,644 - ERROR - Internal Server Error: /dashboard/
+Traceback (most recent call last):
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py", line 18, in dashboard
+    return render(request, "extractor/dashboard.html", {"data": data})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\backends\django.py", line 33, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    return parser.parse()
+           ^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\defaulttags.py", line 961, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\defaulttags.py", line 861, in do_for
+    nodelist_loop = parser.parse(
+                    ^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\defaulttags.py", line 961, in do_if
+    nodelist = parser.parse(("elif", "else", "endif"))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\base.py", line 481, in parse
+    raise self.error(token, e)
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\base.py", line 479, in parse
+    filter_expression = self.compile_filter(token.contents)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\base.py", line 597, in compile_filter
+    return FilterExpression(token, self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\base.py", line 693, in __init__
+    filter_func = parser.find_filter(filter_name)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\base.py", line 603, in find_filter
+    raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
+django.template.exceptions.TemplateSyntaxError: Invalid filter: 'split'
+2025-08-25 13:01:53,940 - ERROR - Internal Server Error: /dashboard/
+Traceback (most recent call last):
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\defaulttags.py", line 1034, in find_library
+    return parser.libraries[name]
+           ~~~~~~~~~~~~~~~~^^^^^^
+KeyError: 'extractor_filters'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py", line 18, in dashboard
+    return render(request, "extractor/dashboard.html", {"data": data})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\backends\django.py", line 33, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    return parser.parse()
+           ^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\base.py", line 510, in parse
+    raise self.error(token, e)
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\base.py", line 508, in parse
+    compiled_result = compile_func(self, token)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\defaulttags.py", line 1096, in load
+    lib = find_library(parser, name)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Mayank\Desktop\DEE\.venv\Lib\site-packages\django\template\defaulttags.py", line 1036, in find_library
+    raise TemplateSyntaxError(
+django.template.exceptions.TemplateSyntaxError: 'extractor_filters' is not a registered tag library. Must be one of:
+admin_list
+admin_modify
+admin_urls
+cache
+i18n
+jazzmin
+l10n
+log
+static
+tz
+2025-08-25 13:02:12,257 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\templatetags\extractor_filters.py changed, reloading.
+2025-08-25 13:02:12,299 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\templatetags\extractor_filters.py changed, reloading.
+2025-08-25 13:02:12,399 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\templatetags\extractor_filters.py changed, reloading.
+2025-08-25 13:35:32,492 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:35:33,358 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:35:33,385 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:35:46,770 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:35:46,920 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:35:46,944 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:36:14,708 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:36:15,492 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:36:15,508 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:40:36,170 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:40:36,218 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:40:36,277 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:40:51,721 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:40:52,076 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:40:52,076 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:41:12,473 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:41:13,199 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:41:13,217 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:42:52,174 - ERROR - Vendor config not found at: C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\vendor_configs\jsw.json
+2025-08-25 13:42:52,174 - ERROR - Error loading vendor config: ['Vendor configuration file not found for JSW']
+2025-08-25 13:44:29,586 - ERROR - Vendor config not found at: C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\vendor_configs\jsw.json
+2025-08-25 13:44:29,586 - ERROR - Error loading vendor config: ['Vendor configuration file not found for JSW']
+2025-08-25 13:45:06,096 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:45:06,156 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:45:06,169 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:45:06,448 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:45:24,560 - ERROR - Vendor config not found at: C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\vendor_configs\jsw.json
+2025-08-25 13:45:24,560 - ERROR - Error loading vendor config: ['Vendor configuration file not found for JSW']
+2025-08-25 13:46:15,973 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:46:16,621 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:46:16,634 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:46:16,651 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:48:19,127 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:48:20,060 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:48:20,271 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:48:20,300 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:49:39,264 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:49:39,904 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:49:40,361 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:50:53,737 - ERROR - Vendor config not found at: C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\vendor_configs\jsw.json
+2025-08-25 13:50:53,739 - ERROR - Error loading vendor config: ['Vendor configuration file not found for JSW']
+2025-08-25 13:53:46,956 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:53:47,035 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:53:47,083 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:53:57,299 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\utils\extractor.py changed, reloading.
+2025-08-25 13:53:57,416 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\utils\extractor.py changed, reloading.
+2025-08-25 13:53:57,559 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\utils\extractor.py changed, reloading.
+2025-08-25 13:55:11,513 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:55:12,337 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:55:12,339 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\views.py changed, reloading.
+2025-08-25 13:55:20,635 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\utils\extractor.py changed, reloading.
+2025-08-25 13:55:20,651 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\utils\extractor.py changed, reloading.
+2025-08-25 13:55:20,949 - INFO - C:\Users\Mayank\Desktop\DEE\extractor_project\extractor\utils\extractor.py changed, reloading.
+2025-08-25 13:56:33,919 - extractor - ERROR - Vendor config not found. Available configs: ['citic_steel.json', 'hengrum_steel.json', 'iraeta_steel.json', 'jsw_steel.json', 'posco_steel.json', 'citic_steel.json', 'jsw_steel.json']
+2025-08-25 13:56:33,924 - extractor - ERROR - Error loading vendor config: ['Vendor configuration file not found for JSW']
+2025-08-25 13:57:22,135 - extractor - ERROR - Vendor config not found. Available configs: ['citic_steel.json', 'hengrum_steel.json', 'iraeta_steel.json', 'jsw_steel.json', 'posco_steel.json', 'citic_steel.json', 'jsw_steel.json']
+2025-08-25 13:57:22,137 - extractor - ERROR - Error loading vendor config: ['Vendor configuration file not found for JSW']
+2025-08-25 14:18:38,180 - extractor - ERROR - Vendor config not found. Available configs: ['citic_steel.json', 'hengrum_steel.json', 'iraeta_steel.json', 'jsw_steel.json', 'posco_steel.json', 'citic_steel.json', 'jsw_steel.json']
+2025-08-25 14:18:38,182 - extractor - ERROR - Error loading vendor config: ['Vendor configuration file not found for JSW']
+2025-08-25 15:23:42,827 - extractor - ERROR - Vendor config not found. Available configs: ['citic_steel.json', 'hengrum_steel.json', 'iraeta_steel.json', 'jsw_steel.json', 'posco_steel.json', 'citic_steel.json', 'citic_steel_d6XAAlc.json', 'jsw_steel.json', 'jsw_steel_EnVeRuy.json']
+2025-08-25 15:23:42,832 - extractor - ERROR - Error loading vendor config: ['Vendor configuration file not found for JSW']
+2025-08-25 16:47:47,935 - extractor - ERROR - Error loading vendor config: ['Invalid vendor config: missing patterns for PLATE_NO, TEST_CERT_NO']
+2025-08-25 16:48:10,678 - extractor - ERROR - Error loading vendor config: ['Invalid vendor config: missing patterns for PLATE_NO, TEST_CERT_NO']
+2025-08-25 16:50:16,385 - extractor - ERROR - Error loading vendor config: ['Invalid vendor config: missing patterns for PLATE_NO, TEST_CERT_NO']

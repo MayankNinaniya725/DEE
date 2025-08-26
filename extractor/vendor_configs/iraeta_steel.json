@@ -1,0 +1,9 @@
+{
+  "vendor_id": "iraeta",
+  "vendor_name": "Iraeta Energy Equipment Co., Ltd.",
+  "fields": {
+    "PLATE_NO": "\\b24-3765-\\d{2}\\b",
+    "HEAT_NO": "\\bSI\\d{2,4}-\\d{4}\\b",
+    "TEST_CERT_NO": "Report No\\.\\s*[:：]?\\s*(\\d{4}-\\d{4}-\\d{3})"
+  }
+}
