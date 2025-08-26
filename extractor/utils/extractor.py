@@ -14,7 +14,7 @@ ERROR_LOG_FILE = "logs/errors.log"
 os.makedirs("logs", exist_ok=True)
 
 # Get logger
-logger = logging.getLogger('extractor.utils.extractor')
+logger = logging.getLogger("extractor.utils")
 
 def generate_hash(entry, vendor_id):
     """Generate MD5 hash for duplicate detection."""
@@ -44,14 +44,17 @@ def save_to_log(entry):
 def extract_entries_from_text(text, vendor_config):
     """
     Extract multiple entries (Plate + Heat + Test Cert).
-    Only log if all 3 exist.
+    Insert dummy entries if nothing is matched (for debugging).
     """
     fields = vendor_config["fields"]
 
+    # Log preview of raw text
+    logger.info("🔍 Raw text preview:\n" + (text[:1000] if text else "⚠️ No text extracted"))
+
     # Run regex matches
-    plates = re.findall(fields["PLATE_NO"], text, re.IGNORECASE)
-    heats = re.findall(fields["HEAT_NO"], text, re.IGNORECASE)
-    certs = re.findall(fields["TEST_CERT_NO"], text, re.IGNORECASE)
+    plates = re.findall(fields["PLATE_NO"], text, re.IGNORECASE) if text else []
+    heats = re.findall(fields["HEAT_NO"], text, re.IGNORECASE) if text else []
+    certs = re.findall(fields["TEST_CERT_NO"], text, re.IGNORECASE) if text else []
 
     # Usually one certificate per page → apply same cert to all
     test_cert_no = certs[0] if certs else None
@@ -69,6 +72,16 @@ def extract_entries_from_text(text, vendor_config):
                     "HEAT_NO": heat.strip(),
                     "TEST_CERT_NO": test_cert_no.strip()
                 })
+
+    # 🔹 DEBUG MODE: if nothing matched, insert dummy entry
+    if not entries:
+        logger.warning("⚠️ No matches found — inserting dummy debug entry")
+        entries = [{
+            "PLATE_NO": "DEBUG_PLATE",
+            "HEAT_NO": "DEBUG_HEAT",
+            "TEST_CERT_NO": "DEBUG_CERT"
+        }]
+
     return entries
 
 def extract_multi_entries(pdf_path, vendor_config, output_folder):
@@ -100,7 +113,7 @@ def extract_multi_entries(pdf_path, vendor_config, output_folder):
                 if not text or len(text.strip()) < 50:
                     text = extract_text_with_ocr(pdf_path, idx)
 
-                # Extract fields using vendor patterns
+                # Extract fields using vendor patterns (with debug fallback)
                 entries = extract_entries_from_text(text, vendor_config)
 
                 for entry in entries:
@@ -129,7 +142,7 @@ def extract_multi_entries(pdf_path, vendor_config, output_folder):
                     with open(file_path, "wb") as f:
                         writer.write(f)
 
-                    # Save log entry/
+                    # Save log entry
                     log_entry = {
                         "Vendor": vendor_name,
                         "Filename": safe_filename,
@@ -155,4 +168,3 @@ def extract_pdf_fields(pdf_path, vendor_config, output_folder="extracted_output"
     and returns the results.
     """
     return extract_multi_entries(pdf_path, vendor_config, output_folder)
-
