@@ -10,6 +10,8 @@ numpy==1.24.3
 pandas==1.5.3
 pytesseract==0.3.10
 Pillow==10.0.0
+openpyxl==3.1.5
 # Celery and Redis
 celery==5.3.4
 redis==5.0.1
+django-environ==0.12.0
