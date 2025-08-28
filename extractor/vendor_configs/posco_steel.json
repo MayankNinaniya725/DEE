@@ -1,9 +1,0 @@
-{
-  "vendor_id": "posco",
-  "vendor_name": "POSCO INTERNATIONAL CORPORATION",
-  "fields": {
-    "PLATE_NO": "\\bPP\\d{7}\\b",
-    "HEAT_NO": "\\bSU\\d{5}\\b",
-    "TEST_CERT_NO": "Certificate No\\.\\s*:\\s*([A-Z0-9\\-]+)"
-  }
-}
