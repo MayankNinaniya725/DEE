@@ -1,9 +1,0 @@
-{
-  "vendor_id": "jsw",
-  "vendor_name": "JSW Steel",
-  "fields": {
-    "heat_no": "\\b[A-Z][0-9]{6}\\b",
-    "plate_no": "\\b[0-9]{2}[A-Z]{2}[0-9A-Z]{4,}\\b",
-    "test_certificate_no": "JSW/PCMD/([0-9]{6,}(?:-[0-9]+)?)"
-  }
-}
