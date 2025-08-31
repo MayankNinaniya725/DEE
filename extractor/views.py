@@ -8,6 +8,12 @@ from django.contrib import messages
 from django.db.models import Count
 from django.core.exceptions import ValidationError
 from django.conf import settings
+from django.http import JsonResponse, HttpResponse, FileResponse
+from django.utils import timezone
+from celery.result import AsyncResult
+import pandas as pd
+from openpyxl import load_workbook
+
 from .models import ExtractedData, Vendor, UploadedPDF
 from .utils.extractor import extract_pdf_fields
 from .utils.config_loader import load_vendor_config
@@ -34,7 +40,8 @@ file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 ))
-logger.addHandler(file_handler)
+if not any(isinstance(h, logging.handlers.RotatingFileHandler) and h.baseFilename == file_handler.baseFilename for h in logger.handlers):
+    logger.addHandler(file_handler)
 
 # Error file handler
 error_handler = logging.handlers.RotatingFileHandler(
@@ -46,26 +53,82 @@ error_handler.setLevel(logging.ERROR)
 error_handler.setFormatter(logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 ))
-logger.addHandler(error_handler)
+if not any(isinstance(h, logging.handlers.RotatingFileHandler) and h.baseFilename == error_handler.baseFilename for h in logger.handlers):
+    logger.addHandler(error_handler)
 
 print("extractor.views module loaded - Logging configured")
 
 def dashboard(request):
-    # Get latest data first, with related vendor and PDF info
-    data = ExtractedData.objects.select_related('vendor', 'pdf').order_by('-created_at')
+    # Clean up any stale task IDs in the session
+    if 'last_task_id' in request.session:
+        try:
+            # Check if task is still valid
+            task_id = request.session['last_task_id']
+            res = AsyncResult(task_id)
+            # If task doesn't exist or is in a final state, remove it
+            if res.state in ['SUCCESS', 'FAILURE'] or res.state is None:
+                del request.session['last_task_id']
+                request.session.modified = True
+        except Exception:
+            # Task ID is invalid, remove it
+            del request.session['last_task_id']
+            request.session.modified = True
     
-    # Get counts for summary
-    total_pdfs = UploadedPDF.objects.count()
-    total_extracted = ExtractedData.objects.values('pdf').distinct().count()
+    backups_dir = os.path.join(settings.MEDIA_ROOT, "backups")
+    master_path = os.path.join(backups_dir, "master.xlsx")
+
+    data = []
+    if os.path.exists(master_path):
+        # Read all sheets from Excel file
+        df = pd.read_excel(master_path, sheet_name=None)
+        
+        # Process each sheet and convert to records
+        for sheet_name, sheet_df in df.items():
+            # Ensure column names match exactly with Excel file
+            if 'PLATE_NO' not in sheet_df.columns and 'Plate No' in sheet_df.columns:
+                sheet_df = sheet_df.rename(columns={'Plate No': 'PLATE_NO'})
+            if 'HEAT_NO' not in sheet_df.columns and 'Heat No' in sheet_df.columns:
+                sheet_df = sheet_df.rename(columns={'Heat No': 'HEAT_NO'})
+            if 'TEST_CERT_NO' not in sheet_df.columns and 'Test Cert No' in sheet_df.columns:
+                sheet_df = sheet_df.rename(columns={'Test Cert No': 'TEST_CERT_NO'})
+                
+            # Handle NaN values to prevent template errors
+            sheet_df = sheet_df.fillna("")
+            
+            # Convert to records with all fields processed
+            records = sheet_df.to_dict(orient="records")
+            data.extend(records)
+
+    # Handle case where 'Sr No' might be missing
+    if data and 'Sr No' not in data[0]:
+        for i, item in enumerate(data):
+            item['Sr No'] = i + 1
+
+    # Group data by Source PDF to match Excel format
+    if data:
+        # Ensure data is properly formatted for display
+        for item in data:
+            # Ensure consistent capitalization for key certificate fields
+            for field in ['PLATE_NO', 'HEAT_NO', 'TEST_CERT_NO']:
+                if field in item and item[field]:
+                    item[field] = str(item[field]).upper().strip()
     
-    from django.utils import timezone
+    # Count unique entries by certificate combination (instead of counting every row)
+    unique_combinations = set()
+    for item in data:
+        combo = (
+            item.get('PLATE_NO', ''), 
+            item.get('HEAT_NO', ''), 
+            item.get('TEST_CERT_NO', '')
+        )
+        unique_combinations.add(combo)
     
     context = {
-        "data": data,
-        "total_pdfs": total_pdfs,
-        "total_extracted": total_extracted,
-        "messages": messages.get_messages(request),  # Get any messages from upload
-        "now": timezone.now()  # Add current time for last update display
+        "data": data[::-1],  # latest first
+        "total_pdfs": len(set([d.get("Source PDF", "") for d in data if d.get("Source PDF")])),
+        "total_extracted": len(unique_combinations),  # Count unique combinations only
+        "messages": messages.get_messages(request),
+        "now": timezone.now(),
     }
     return render(request, "extractor/dashboard.html", context)
 
@@ -78,31 +141,56 @@ def upload_pdf(request):
             vendor_id = request.POST.get("vendor")
             uploaded_file = request.FILES.get("pdf")
             
-            logger.debug(f"Received vendor_id: {vendor_id}")
-            logger.debug(f"Received file: {uploaded_file.name if uploaded_file else None}")
-            
             # Validation
             if not vendor_id:
-                raise ValidationError("Please select a vendor")
+                messages.error(request, "Please select a vendor")
+                return redirect("dashboard")
             if not uploaded_file:
-                raise ValidationError("Please select a PDF file")
+                messages.error(request, "Please select a PDF file")
+                return redirect("dashboard")
             if not uploaded_file.name.lower().endswith('.pdf'):
-                raise ValidationError("Only PDF files are allowed")
+                messages.error(request, "Only PDF files are allowed")
+                return redirect("dashboard")
             
             # Get vendor
             try:
                 vendor = Vendor.objects.get(id=vendor_id)
             except Vendor.DoesNotExist:
-                raise ValidationError("Invalid vendor selected")
+                messages.error(request, "Invalid vendor selected")
+                return redirect("dashboard")
             
-            # Save uploaded PDF
-            try:
-                uploaded_pdf = UploadedPDF.objects.create(
-                    vendor=vendor,
-                    file=uploaded_file
-                )
-            except Exception as e:
-                raise ValidationError(f"Error saving PDF: {str(e)}")
+            # === Improved duplicate check: compare file size and name pattern ===
+            file_size = uploaded_file.size
+            file_base_name = os.path.splitext(os.path.basename(uploaded_file.name))[0].split('_')[0]  # Strip suffixes
+            
+            # Flag to track if this is a duplicate file
+            is_duplicate = False
+            
+            # Look for existing PDFs with similar name and same size
+            existing_pdfs = UploadedPDF.objects.filter(file_size=file_size)
+            for pdf in existing_pdfs:
+                existing_name = os.path.splitext(os.path.basename(pdf.file.name))[0].split('_')[0]
+                if file_base_name == existing_name:
+                    # Clear any previous messages that might be causing confusion
+                    storage = messages.get_messages(request)
+                    storage.used = True
+                    
+                    # Add a more prominent duplicate warning with clear details
+                    duplicate_msg = f"⚠️ DUPLICATE FILE DETECTED: '{uploaded_file.name}' appears to be a duplicate of an existing file. Upload canceled."
+                    messages.error(request, duplicate_msg)
+                    is_duplicate = True
+                    break
+                    
+            # If duplicate detected, redirect to dashboard instead of upload page
+            if is_duplicate:
+                return redirect("dashboard")
+            
+            # Save uploaded PDF with size information
+            uploaded_pdf = UploadedPDF.objects.create(
+                vendor=vendor,
+                file=uploaded_file,
+                file_size=file_size
+            )
             
             # Create necessary directories
             media_root = settings.MEDIA_ROOT
@@ -113,11 +201,7 @@ def upload_pdf(request):
 
             # Load vendor config
             try:
-                # Extract vendor short name (e.g., "JSW Steel" -> "jsw")
                 vendor_name = vendor.name.split()[0].lower()
-                logger.info(f"Loading config for vendor: {vendor_name}")
-                
-                # Check both possible locations for vendor config
                 vendor_config_path = os.path.join(settings.BASE_DIR, 'extractor', 'vendor_configs', f"{vendor_name}_steel.json")
                 media_config_path = os.path.join(settings.MEDIA_ROOT, 'vendor_configs', f"{vendor_name}_steel.json")
                 
@@ -126,16 +210,7 @@ def upload_pdf(request):
                 elif os.path.exists(media_config_path):
                     config_path = media_config_path
                 else:
-                    available_configs = []
-                    for path in [os.path.join(settings.BASE_DIR, 'extractor', 'vendor_configs'), 
-                               os.path.join(settings.MEDIA_ROOT, 'vendor_configs')]:
-                        if os.path.exists(path):
-                            available_configs.extend(os.listdir(path))
-                    
-                    logger.error(f"Vendor config not found. Available configs: {available_configs}")
                     raise ValidationError(f"Vendor configuration file not found for {vendor.name}")
-                
-                logger.info(f"Using config file: {config_path}")
                 
                 with open(config_path, 'r') as f:
                     vendor_config = json.load(f)
@@ -151,84 +226,137 @@ def upload_pdf(request):
                 if missing_patterns:
                     raise ValidationError(f"Invalid vendor config: missing patterns for {', '.join(missing_patterns)}")
                 
-                logger.info(f"Successfully loaded vendor config: {vendor_config}")
-            except json.JSONDecodeError as e:
-                logger.error(f"Invalid JSON in vendor config: {str(e)}")
-                raise ValidationError(f"Invalid vendor configuration file format: {str(e)}")
+            except (json.JSONDecodeError, ValidationError) as e:
+                messages.error(request, f"PDF could not be processed: {str(e)}")
+                return redirect("dashboard")
             except Exception as e:
-                logger.error(f"Error loading vendor config: {str(e)}")
-                raise ValidationError(f"Error loading vendor configuration: {str(e)}")
+                messages.error(request, "PDF could not be scanned or matched. OCR fallback under development.")
+                logger.error(f"OCR/Extraction failed: {str(e)}", exc_info=True)
+                return redirect("dashboard")
             
-            # Run extraction
+            # Queue the extraction task
             try:
-                # Enhanced logging for troubleshooting
-                logger.info("=== Starting Extraction Process ===")
-                logger.info(f"PDF Path: {uploaded_pdf.file.path}")
-                logger.info(f"Vendor: {vendor.name}")
-                logger.info(f"Vendor Config: {vendor_config}")
-                
-                # Verify file accessibility
-                if not os.path.exists(uploaded_pdf.file.path):
-                    raise ValidationError(f"PDF file not found at {uploaded_pdf.file.path}")
-                
-                file_size = os.path.getsize(uploaded_pdf.file.path)
-                logger.info(f"File size: {file_size} bytes")
-                
-                if file_size == 0:
-                    raise ValidationError("PDF file is empty")
-                
-                # Verify output directory
-                output_dir = os.path.join(settings.MEDIA_ROOT, 'extracted')
-                os.makedirs(output_dir, exist_ok=True)
-                logger.info(f"Output directory ready: {output_dir}")
-                
-                # Queue the extraction task
-                logger.info("Queueing extraction task...")
                 task = process_pdf_file.delay(uploaded_pdf.id, vendor_config)
-                logger.info(f"Extraction task queued with ID: {task.id}")
+                
+                # Store task ID in session
+                request.session['last_task_id'] = task.id
                 
                 messages.success(request, "PDF uploaded successfully. Processing started in background.")
                 return redirect("dashboard")
-                    
             except Exception as e:
-                logger.error("=== Extraction Failed ===")
-                logger.error(f"Error type: {type(e).__name__}")
-                logger.error(f"Error message: {str(e)}")
-                logger.error("Full traceback:", exc_info=True)
-                raise ValidationError(f"Error during extraction: {str(e)}")
-            
-            if not extracted_data:
-                logger.warning("No data extracted from PDF")
-                raise ValidationError("No data could be extracted from the PDF")
-            
-            # Save extracted data
-            extraction_count = 0
-            for entry in extracted_data:
-                for field_key in ["PLATE_NO", "HEAT_NO", "TEST_CERT_NO"]:
-                    if entry.get(field_key):
-                        ExtractedData.objects.create(
-                            vendor=vendor,
-                            pdf=uploaded_pdf,
-                            field_key=field_key,
-                            field_value=entry[field_key]
-                        )
-                        extraction_count += 1
-            
-            if extraction_count == 0:
-                raise ValidationError("No matching data patterns found in the PDF")
-            
-            messages.success(request, f"Successfully extracted {extraction_count} fields from the PDF")
-            return redirect("dashboard")
-            
-        except ValidationError as e:
-            return render(request, "extractor/upload.html", {
-                "vendors": vendors,
-                "error": str(e)
-            })
+                messages.error(request, "PDF could not be processed. Task queue failed.")
+                logger.error(f"Task queue failed: {str(e)}", exc_info=True)
+                return redirect("dashboard")
+
         except Exception as e:
-            return render(request, "extractor/upload.html", {
-                "vendors": vendors,
-                "error": f"An unexpected error occurred: {str(e)}"
-            })
-    
+            messages.error(request, f"An unexpected error occurred: {str(e)}")
+            return redirect("dashboard")
+
     return render(request, "extractor/upload.html", {"vendors": vendors})
+
+
+
+# === NEW: Task status endpoint for progress bar ===
+def task_status(request, task_id: str):
+    res = AsyncResult(task_id)
+    payload = {"state": res.state}
+    if res.state == "PROGRESS":
+        meta = res.info or {}
+        payload.update({
+            "current": meta.get("current", 0),
+            "total": meta.get("total", 1),
+            "phase": meta.get("phase", "")
+        })
+    elif res.state == "SUCCESS":
+        payload.update(res.result or {})
+        # Clear task ID from session when completed
+        if 'last_task_id' in request.session and request.session['last_task_id'] == task_id:
+            del request.session['last_task_id']
+            request.session.modified = True
+    elif res.state == "FAILURE":
+        payload.update({"status": "failed", "message": "Task failed"})
+        # Clear task ID from session when failed
+        if 'last_task_id' in request.session and request.session['last_task_id'] == task_id:
+            del request.session['last_task_id']
+            request.session.modified = True
+    return JsonResponse(payload)
+
+# === NEW: Clear task ID from session ===
+def clear_task_id(request):
+    if 'last_task_id' in request.session:
+        del request.session['last_task_id']
+        request.session.modified = True
+    return JsonResponse({"success": True})
+
+
+# === NEW: Download & Master backup ===
+def _save_master_backup(df: pd.DataFrame):
+    """
+    Save a master Excel with date-wise sheets, e.g., 2025-08-30, 2025-08-31...
+    Saved under MEDIA_ROOT/backups/master.xlsx
+    """
+    backups_dir = os.path.join(settings.MEDIA_ROOT, "backups")
+    os.makedirs(backups_dir, exist_ok=True)
+    filename = os.path.join(backups_dir, "master.xlsx")
+    sheet_name = timezone.localdate().isoformat()
+    
+    # Ensure we have all the required columns in the correct order
+    columns = [
+        'Sr No', 'Vendor', 'PLATE_NO', 'HEAT_NO', 'TEST_CERT_NO', 
+        'Filename', 'Page', 'Source PDF', 'Created', 'Hash', 'Remarks'
+    ]
+    
+    # Add Sr No if missing
+    if 'Sr No' not in df.columns:
+        df.insert(0, 'Sr No', range(1, len(df) + 1))
+    
+    # Reorder columns if needed
+    available_columns = [col for col in columns if col in df.columns]
+    df = df[available_columns + [col for col in df.columns if col not in columns]]
+    
+    # Replace NaN values with empty strings
+    df = df.fillna("")
+
+    if os.path.exists(filename):
+        try:
+            book = load_workbook(filename)
+            with pd.ExcelWriter(filename, engine='openpyxl', mode='a', if_sheet_exists='overlay') as writer:
+                writer.book = book
+                # If sheet exists, append under it; if not, create new.
+                startrow = writer.sheets[sheet_name].max_row if sheet_name in writer.sheets else 0
+                df.to_excel(writer, sheet_name=sheet_name, index=False, header=(startrow == 0), startrow=startrow)
+        except Exception as e:
+            # Log error and fallback to writing fresh file
+            logger.error(f"Error appending to Excel: {str(e)}", exc_info=True)
+            with pd.ExcelWriter(filename, engine='openpyxl') as writer:
+                df.to_excel(writer, sheet_name=sheet_name, index=False)
+    else:
+        with pd.ExcelWriter(filename, engine='openpyxl') as writer:
+            df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+from django.http import FileResponse
+
+def download_excel(request):
+    """
+    Provides a downloadable Excel file with all extracted data.
+    This file matches the format of the locally stored master.xlsx file.
+    """
+    backups_dir = os.path.join(settings.MEDIA_ROOT, "backups")
+    master_path = os.path.join(backups_dir, "master.xlsx")
+
+    if not os.path.exists(master_path):
+        messages.error(request, "No extracted data available for download")
+        return redirect("dashboard")
+
+    try:
+        # Return the file as a download attachment
+        response = FileResponse(
+            open(master_path, "rb"),
+            as_attachment=True,
+            filename="extracted_data.xlsx"
+        )
+        return response
+    except Exception as e:
+        logger.error(f"Error downloading Excel: {str(e)}", exc_info=True)
+        messages.error(request, "Could not generate Excel file")
+        return redirect("dashboard")

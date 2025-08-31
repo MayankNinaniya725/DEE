@@ -17,6 +17,8 @@ class Vendor(models.Model):
 class UploadedPDF(models.Model):
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="pdfs")
     file = models.FileField(upload_to="uploads/")
+    file_hash = models.CharField(max_length=64, blank=True, null=True)
+    file_size = models.PositiveIntegerField(default=0)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -24,6 +26,13 @@ class UploadedPDF(models.Model):
 
     def get_file_url(self):
         return settings.MEDIA_URL + str(self.file)
+    
+    def save(self, *args, **kwargs):
+        # Calculate file size and hash if not already done
+        if not self.file_size and self.file:
+            self.file_size = self.file.size
+            
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ['-uploaded_at']
@@ -44,4 +53,3 @@ class ExtractedData(models.Model):
         ordering = ['-created_at']
         verbose_name = "Extracted Data"
         verbose_name_plural = "Extracted Data"
-

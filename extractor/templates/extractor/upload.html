@@ -2,94 +2,769 @@
 <html>
 <head>
     <title>Upload PDF</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css?v=20250831">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css?v=20250831">
     <style>
-        /* Loading spinner */
-        .loading-spinner {
-            display: none;
-            text-align: center;
-            margin: 20px 0;
-        }
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 4px solid #4CAF50;
-            animation: spin 1s linear infinite;
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            max-width: 900px;
             margin: 0 auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .processing-text {
-            margin-top: 10px;
-            color: #666;
+            padding: 30px;
+            background: linear-gradient(135deg, #8BC6EC 0%, #9599E2 100%);
+            min-height: 100vh;
+            color: #2c3e50;
+            position: relative;
+            overflow-x: hidden;
         }
         
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
+        body:before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            z-index: -1;
+            border-radius: 50%;
+        }
+        
+        body:after {
+            content: '';
+            position: absolute;
+            bottom: -100px;
+            left: -100px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            z-index: -1;
+            border-radius: 50%;
         }
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
+            background: linear-gradient(to right, #4776E6, #8E54E9);
+            padding: 25px 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(142, 84, 233, 0.2);
+            position: relative;
+            overflow: hidden;
         }
-        .dashboard-link {
-            background-color: #2196F3;
+        
+        .header:before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(45deg);
+            pointer-events: none;
+        }
+        
+        .header h1 {
+            margin: 0;
             color: white;
-            padding: 10px 20px;
+            font-weight: 700;
+            font-size: 28px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .dashboard-link {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 28px;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 50px;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(5px);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .dashboard-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            color: white;
+        }
+        
+        .dashboard-link i {
+            font-size: 18px;
         }
         .upload-form {
-            background-color: #f9f9f9;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            position: relative;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            overflow: hidden;
+            margin-bottom: 30px;
+            transform: translateZ(0);
         }
+        
+        .upload-form:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(to right, #4776E6, #8E54E9);
+            z-index: 1;
+        }
+        
+        .upload-form:after {
+            content: '';
+            position: absolute;
+            bottom: -80px;
+            right: -80px;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, rgba(71, 118, 230, 0.1), rgba(142, 84, 233, 0.1));
+            border-radius: 50%;
+            z-index: 0;
+        }
+        
+        .upload-form h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #4776E6;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .upload-form h1:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -10px;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(to right, #4776E6, #8E54E9);
+            border-radius: 2px;
+        }
+        
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s;
         }
+        
+        .form-group:hover {
+            transform: translateY(-3px);
+        }
+        
         label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: #4776E6;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            position: relative;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        
+        label:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -3px;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(to right, #4776E6, #8E54E9);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        
+        .form-group:hover label:after {
+            width: 100%;
+        }
+        
+        select, input[type="file"] {
+            width: 100%;
+            padding: 16px 20px;
+            margin-bottom: 15px;
+            border: 2px solid rgba(71, 118, 230, 0.2);
+            border-radius: 12px;
+            background-color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s;
+            font-size: 16px;
+            color: #2d3436;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+            cursor: pointer;
+        }
+        
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234776E6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 20px;
+            padding-right: 45px;
+        }
+        
+        select:focus, input[type="file"]:focus {
+            border-color: #4776E6;
+            box-shadow: 0 5px 20px rgba(71, 118, 230, 0.15);
+            outline: none;
+            transform: translateY(-2px);
+        }
+        
+        select:hover, input[type="file"]:hover {
+            border-color: #8E54E9;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(71, 118, 230, 0.15);
+        }
+        
+        /* Customize file input */
+        input[type="file"] {
+            position: relative;
+            padding-left: 55px;
+        }
+        
+        input[type="file"]::before {
+            content: '\f15c';  /* Font Awesome file icon */
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 400;
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: #4776E6;
+        }
+        
+        /* Enhance button animation */
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 0 0 rgba(71, 118, 230, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(71, 118, 230, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(71, 118, 230, 0); }
+        }
+        
+        button {
+            background: linear-gradient(45deg, #4776E6, #8E54E9);
+            color: white;
+            padding: 16px 35px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 10px 20px rgba(71, 118, 230, 0.2);
+            margin-top: 15px;
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: all 0.6s;
+        }
+        
+        button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 25px rgba(71, 118, 230, 0.3);
+            animation: pulse-glow 1.5s infinite;
+        }
+        
+        button:hover:before {
+            left: 100%;
+        }
+        
+        /* Alert styles */
+        .alert {
+            display: flex;
+            align-items: center;
+            border-radius: 15px;
+            box-shadow: 0 15px 25px rgba(0,0,0,0.1);
+            animation: fadeIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 20px;
+            border: none;
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            transform: translateZ(0);
+            transition: all 0.3s;
+        }
+        
+        .alert:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 30px rgba(0,0,0,0.15);
+        }
+        
+        .alert:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: rgba(255,255,255,0.5);
+        }
+        
+        .alert i {
+            margin-right: 15px;
+            font-size: 24px;
+            background: rgba(255,255,255,0.2);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%);
+            color: white;
+        }
+        
+        .alert-warning {
+            background: linear-gradient(135deg, #F09819 0%, #EDDE5D 100%);
+            color: white;
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+            color: white;
+        }
+        
+        .alert-info {
+            background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+            color: white;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .upload-form h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #2c3e50;
+            position: relative;
+            display: inline-block;
+        }
+        .upload-form h1:after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -8px;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            border-radius: 3px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #34495e;
+            font-size: 15px;
         }
         select, input[type="file"] {
             width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            border: 1px solid #dfe6e9;
+            border-radius: 8px;
+            background-color: #f8fafc;
+            transition: all 0.3s;
+            font-size: 15px;
+            color: #2d3436;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
         }
+        select:focus, input[type="file"]:focus {
+            border-color: #00c6ff;
+            box-shadow: 0 0 0 3px rgba(0, 198, 255, 0.2);
+            outline: none;
+        }
+        select:hover, input[type="file"]:hover {
+            border-color: #74b9ff;
+        }
+        
         button {
-            background-color: #4CAF50;
+            background: linear-gradient(to right, #4b6cb7, #182848);
             color: white;
-            padding: 10px 20px;
+            padding: 14px 30px;
             border: none;
-            border-radius: 5px;
+            border-radius: 30px;
             cursor: pointer;
             font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 8px 15px rgba(75, 108, 183, 0.2);
+            margin-top: 10px;
         }
         button:hover {
-            background-color: #45a049;
+            background: linear-gradient(to right, #3b5998, #0f2027);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(75, 108, 183, 0.3);
         }
-        .error-message {
-            background-color: #ffebee;
-            color: #c62828;
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 20px;
+        
+        /* Loading spinner */
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            margin: 35px 0;
+            position: relative;
         }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(142, 84, 233, 0.2);
+            border-radius: 50%;
+            border-top: 5px solid #8E54E9;
+            animation: spin 1.5s linear infinite;
+            margin: 0 auto;
+            box-shadow: 0 10px 20px rgba(142, 84, 233, 0.15);
+            position: relative;
+        }
+        
+        .spinner:before, .spinner:after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            border-top-color: rgba(71, 118, 230, 0.3);
+            animation: spin-reverse 2s linear infinite;
+        }
+        
+        .spinner:after {
+            top: -15px;
+            left: -15px;
+            right: -15px;
+            bottom: -15px;
+            border-top-color: rgba(71, 118, 230, 0.2);
+            animation: spin 3s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes spin-reverse {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(-360deg); }
+        }
+        
+        .processing-text {
+            margin-top: 25px;
+            color: #4776E6;
+            font-size: 18px;
+            font-weight: 600;
+            animation: pulse 1.5s infinite;
+            text-shadow: 0 2px 10px rgba(71, 118, 230, 0.3);
+            letter-spacing: 0.5px;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        /* Supported formats info */
         .supported-formats {
-            margin-top: 20px;
-            color: #666;
-            font-size: 0.9em;
+            margin-top: 35px;
+            color: white;
+            background: rgba(71, 118, 230, 0.2);
+            padding: 20px 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .supported-formats:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            background: rgba(71, 118, 230, 0.25);
+        }
+        
+        .supported-formats:before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            z-index: 0;
+        }
+        
+        .supported-formats p {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .supported-formats p:before {
+            content: '📄';
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        /* Enhanced notification system */
+        #notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            width: 350px;
+        }
+        .notification {
+            margin-bottom: 15px;
+            padding: 18px;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slide-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .notification:before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255,255,255,0.1);
+            transform: rotate(30deg);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        @keyframes slide-in {
+            0% { transform: translateX(100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        .notification-success {
+            background: linear-gradient(135deg, #43E97B 0%, #38F9D7 100%);
+            color: white;
+        }
+        .notification-warning {
+            background: linear-gradient(135deg, #F09819 0%, #EDDE5D 100%);
+            color: white;
+        }
+        .notification-error {
+            background: linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%);
+            color: white;
+        }
+        .notification-info {
+            background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+            color: white;
+        }
+        .notification-icon {
+            margin-right: 15px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1;
+        }
+        .notification-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            opacity: 0.8;
+            padding: 5px;
+            transition: all 0.3s;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            position: relative;
+            z-index: 1;
+        }
+        .notification-close:hover {
+            opacity: 1;
+            transform: rotate(90deg);
+            background: rgba(255,255,255,0.2);
+        }
+        
+        /* Fade out animation */
+        .fade-out {
+            animation: fade-out 0.3s forwards;
+        }
+        @keyframes fade-out {
+            to { opacity: 0; transform: translateY(-10px); }
+        }
+        
+        /* Progress Bar */
+        .progress-container {
+            margin-top: 35px;
+            display: none;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            transform: translateZ(0);
+        }
+        
+        .progress-container:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        .progress-phase {
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-phase i {
+            color: #8E54E9;
+            animation: pulse 1.5s infinite;
+            font-size: 18px;
+        }
+        
+        #progressPercent {
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, #4776E6, #8E54E9);
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-size: 14px;
+            box-shadow: 0 5px 15px rgba(71, 118, 230, 0.2);
+            min-width: 60px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #progressPercent:before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255,255,255,0.1);
+            transform: rotate(30deg);
+            pointer-events: none;
+        }
+        
+        .progress {
+            height: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(to right, #4776E6, #8E54E9) !important;
+            box-shadow: 0 0 10px rgba(0, 198, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+            transition: width 0.5s ease-in-out;
+        }
+        
+        .progress-bar:after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                rgba(255,255,255,0.2) 25%, 
+                transparent 25%, 
+                transparent 50%, 
+                rgba(255,255,255,0.2) 50%, 
+                rgba(255,255,255,0.2) 75%, 
+                transparent 75%, 
+                transparent);
+            background-size: 20px 20px;
+            animation: move-stripes 1s linear infinite;
+            z-index: 1;
+        }
+        
+        @keyframes move-stripes {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 0; }
         }
     </style>
 </head>
@@ -99,15 +774,34 @@
         <a href="{% url 'dashboard' %}" class="dashboard-link">View Dashboard</a>
     </div>
 
-    {% if error %}
-    <div class="error-message">
-        {{ error }}
+    <!-- Server message alerts - shown at top of page for high visibility -->
+    {% if messages %}
+    <div class="alert-section" style="margin-bottom: 20px;">
+        {% for message in messages %}
+            {% if message.tags == 'error' %}
+                <div class="alert alert-danger" role="alert" style="font-size: 16px; font-weight: bold; padding: 15px; margin-bottom: 10px;">
+                    <i class="fas fa-exclamation-triangle"></i> {{ message }}
+                </div>
+            {% elif message.tags == 'warning' %}
+                <div class="alert alert-warning" role="alert" style="font-size: 16px; font-weight: bold; padding: 15px; margin-bottom: 10px;">
+                    <i class="fas fa-exclamation-triangle"></i> {{ message }}
+                </div>
+            {% elif message.tags == 'success' %}
+                <div class="alert alert-success" role="alert" style="font-size: 16px; font-weight: bold; padding: 15px; margin-bottom: 10px;">
+                    <i class="fas fa-check-circle"></i> {{ message }}
+                </div>
+            {% else %}
+                <div class="alert alert-info" role="alert" style="font-size: 16px; font-weight: bold; padding: 15px; margin-bottom: 10px;">
+                    <i class="fas fa-info-circle"></i> {{ message }}
+                </div>
+            {% endif %}
+        {% endfor %}
     </div>
     {% endif %}
 
     <div class="upload-form">
         <h1>Upload PDF and Extract Data</h1>
-        <form method="post" enctype="multipart/form-data">
+        <form method="post" enctype="multipart/form-data" id="uploadForm">
             {% csrf_token %}
             <div class="form-group">
                 <label for="pdf">Choose PDF:</label>
@@ -123,24 +817,224 @@
                 </select>
             </div>
 
-            <button type="submit" id="submitBtn">Extract Data</button>
+            <button type="submit" id="submitBtn">
+        <i class="fas fa-cloud-upload-alt"></i>
+        Extract Data
+    </button>
         </form>
 
-        <div class="loading-spinner" id="loadingSpinner">
-            <div class="spinner"></div>
-            <div class="processing-text">Processing PDF, please wait...</div>
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+        <div class="processing-text"><i class="fas fa-cog fa-spin"></i> Processing PDF, please wait...</div>
+    </div>        <!-- Progress bar (appears during processing) -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-label">
+                <span class="progress-phase" id="progressPhase"><i class="fas fa-sync-alt fa-spin"></i> Initializing...</span>
+                <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress">
+                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                     role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
         </div>
     </div>
 
     <div class="supported-formats">
-        <p><strong>Note:</strong> Only PDF files are supported. Please ensure the PDF matches the selected vendor's format.</p>
+        <p><i class="fas fa-file-pdf"></i> <strong>Note:</strong> Only PDF files are supported. Please ensure the PDF matches the selected vendor's format.</p>
     </div>
 
+    <!-- Side notification container for JS notifications -->
+    <div id="notification-container">
+        {% for message in messages %}
+            {% if message.tags == 'success' %}
+                <div class="notification notification-success" role="alert">
+                    <span class="notification-icon">✓</span>
+                    <span class="notification-text">{{ message }}</span>
+                    <button type="button" class="notification-close" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+            {% elif message.tags == 'warning' %}
+                <div class="notification notification-warning" role="alert">
+                    <span class="notification-icon">⚠</span>
+                    <span class="notification-text">{{ message }}</span>
+                    <button type="button" class="notification-close" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+            {% elif message.tags == 'error' %}
+                <div class="notification notification-error" role="alert">
+                    <span class="notification-icon">✗</span>
+                    <span class="notification-text">{{ message }}</span>
+                    <button type="button" class="notification-close" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+            {% else %}
+                <div class="notification notification-info" role="alert">
+                    <span class="notification-icon">ℹ</span>
+                    <span class="notification-text">{{ message }}</span>
+                    <button type="button" class="notification-close" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js?v=20250831"></script>
     <script>
-        document.querySelector('form').addEventListener('submit', function(e) {
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notification-container');
+            let icon = 'ℹ';
+            
+            if (type === 'success') icon = '✓';
+            else if (type === 'warning') icon = '⚠';
+            else if (type === 'error') icon = '✗';
+            
+            const html = `
+                <div class="notification notification-${type}" role="alert">
+                    <span class="notification-icon">${icon}</span>
+                    <span class="notification-text">${message}</span>
+                    <button type="button" class="notification-close" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+            `;
+            
+            container.insertAdjacentHTML('beforeend', html);
+            
+            // Auto-remove after 5 seconds
+            const notification = container.lastElementChild;
+            setTimeout(() => {
+                if (notification && notification.parentNode) {
+                    notification.classList.add('fade-out');
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, 5000);
+        }
+        
+        // Form submission handler with progress tracking
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            // Show processing UI
             document.getElementById('submitBtn').style.display = 'none';
             document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('progressContainer').style.display = 'block';
+            
+            // Store a flag to check if form is being submitted
+            localStorage.setItem('formSubmitted', 'true');
+            
+            // After a short delay, redirect to dashboard to ensure the form has been submitted
+            // This is a backup in case the server-side redirect doesn't work
+            setTimeout(function() {
+                window.location.href = '{% url "dashboard" %}';
+            }, 1500);
+            
+            // Allow the form to submit normally
         });
+        
+        // Modified notification handling
+        window.addEventListener('load', function() {
+            // Check if we were just redirected from form submission
+            if (localStorage.getItem('formSubmitted') === 'true') {
+                // Clear the flag
+                localStorage.removeItem('formSubmitted');
+                
+                // We should never reach here since the server should redirect to dashboard
+                // But just in case, redirect to dashboard if we detect a form submission
+                window.location.href = '{% url "dashboard" %}';
+                return;
+            }
+            
+            // Handle notifications
+            const notifications = document.querySelectorAll('.notification');
+            notifications.forEach(function(notification, index) {
+                setTimeout(() => {
+                    notification.classList.add('fade-out');
+                    setTimeout(() => notification.remove(), 300);
+                }, 5000 + (index * 500)); // Stagger dismissal
+            });
+            
+            // Check for task ID in local storage (from previous upload)
+            const storedTaskId = localStorage.getItem('lastTaskId');
+            if (storedTaskId) {
+                // Show progress UI and start polling
+                document.getElementById('submitBtn').style.display = 'none';
+                document.getElementById('loadingSpinner').style.display = 'block';
+                document.getElementById('progressContainer').style.display = 'block';
+                
+                pollTaskStatus(storedTaskId);
+                
+                // Clear from storage after starting to poll
+                localStorage.removeItem('lastTaskId');
+            }
+        });
+        
+        // Poll task status for progress updates
+        function pollTaskStatus(taskId) {
+            const progressBar = document.getElementById('progressBar');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressPhase = document.getElementById('progressPhase');
+            
+            const pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/task-status/${taskId}/`);
+                    const data = await response.json();
+                    
+                    if (data.state === 'PROGRESS') {
+                        const percent = Math.round((data.current / data.total) * 100);
+                        progressBar.style.width = `${percent}%`;
+                        progressBar.setAttribute('aria-valuenow', percent);
+                        progressPercent.textContent = `${percent}%`;
+                        
+                        // Update phase text with icons
+                        const phaseMap = {
+                            'loading': '<i class="fas fa-file-pdf"></i> Loading PDF file...',
+                            'extracting': '<i class="fas fa-search"></i> Extracting data...',
+                            'saving': '<i class="fas fa-save"></i> Saving extracted data...',
+                            'finalizing': '<i class="fas fa-check-circle"></i> Finalizing extraction...'
+                        };
+                        progressPhase.innerHTML = phaseMap[data.phase] || '<i class="fas fa-sync-alt fa-spin"></i> Processing...';
+                    } 
+                    else if (data.state === 'SUCCESS') {
+                        clearInterval(pollInterval);
+                        
+                        // Complete progress UI
+                        progressBar.style.width = '100%';
+                        progressBar.setAttribute('aria-valuenow', 100);
+                        progressPercent.textContent = '100%';
+                        
+                        // Show appropriate notification
+                        if (data.status === 'completed') {
+                            showNotification(`✅ Extraction completed successfully! ${data.extracted} fields extracted.`, 'success');
+                            // Redirect to dashboard after completion
+                            window.location.href = '{% url "dashboard" %}';
+                        } 
+                        else if (data.status === 'failed_ocr') {
+                            showNotification('⚠️ OCR fallback under development. Some pages may not be processed correctly.', 'warning');
+                            // Hide processing UI after a delay
+                            setTimeout(() => {
+                                document.getElementById('loadingSpinner').style.display = 'none';
+                                document.getElementById('progressContainer').style.display = 'none';
+                                document.getElementById('submitBtn').style.display = 'block';
+                            }, 1000);
+                        }
+                        else {
+                            // Hide processing UI after a delay for any other status
+                            setTimeout(() => {
+                                document.getElementById('loadingSpinner').style.display = 'none';
+                                document.getElementById('progressContainer').style.display = 'none';
+                                document.getElementById('submitBtn').style.display = 'block';
+                            }, 1000);
+                        }
+                    } 
+                    else if (data.state === 'FAILURE') {
+                        clearInterval(pollInterval);
+                        
+                        // Hide processing UI
+                        document.getElementById('loadingSpinner').style.display = 'none';
+                        document.getElementById('progressContainer').style.display = 'none';
+                        document.getElementById('submitBtn').style.display = 'block';
+                        
+                        // Show error notification
+                        showNotification('❌ Extraction failed. Please check logs for details.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error polling task status:', error);
+                }
+            }, 1000);
+        }
     </script>
 </body>
 </html>
