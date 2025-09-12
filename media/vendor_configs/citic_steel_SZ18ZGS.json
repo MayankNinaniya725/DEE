@@ -1,9 +1,0 @@
-{
-  "vendor_id": "citic",
-  "vendor_name": "CITIC Pacific Special Steel",
-  "fields": {
-    "PLATE_NO": "\\bT5\\d{9}\\b",
-    "HEAT_NO": "\\bS[0-9A-Z]{6,10}\\b",
-    "TEST_CERT_NO": "CERTIFICATE NO\\.?\\s*[:：]?\\s*([A-Z0-9\\s\\-]+)"
-  }
-}
