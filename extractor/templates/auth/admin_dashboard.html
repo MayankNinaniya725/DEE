@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        margin-bottom: 1.5rem;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    }
+    .card-header {
+        background-color: #f8f9fc;
+        border-bottom: 1px solid #e3e6f0;
+    }
+    .text-white-75 {
+        color: rgba(255, 255, 255, 0.75)!important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Quick Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-sm-6 mb-3">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="mr-3">
+                            <div class="text-white-75 small">Total Users</div>
+                            <div class="text-lg font-weight-bold">{{ total_users }}</div>
+                        </div>
+                        <i class="fas fa-users fa-2x text-white-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span class="small text-white">Active: {{ active_users }} | Admins: {{ admin_users }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-sm-6 mb-3">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="mr-3">
+                            <div class="text-white-75 small">Total PDFs</div>
+                            <div class="text-lg font-weight-bold">{{ total_pdfs }}</div>
+                        </div>
+                        <i class="fas fa-file-pdf fa-2x text-white-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span class="small text-white">Today: {{ pdfs_today }} | Week: {{ pdfs_week }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-sm-6 mb-3">
+            <div class="card text-white bg-info h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="mr-3">
+                            <div class="text-white-75 small">Total Extractions</div>
+                            <div class="text-lg font-weight-bold">{{ total_extractions }}</div>
+                        </div>
+                        <i class="fas fa-database fa-2x text-white-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span class="small text-white">Today: {{ extractions_today }} | Week: {{ extractions_week }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-sm-6 mb-3">
+            <div class="card text-white bg-warning h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="mr-3">
+                            <div class="text-white-75 small">Vendors</div>
+                            <div class="text-lg font-weight-bold">{{ total_vendors }}</div>
+                        </div>
+                        <i class="fas fa-building fa-2x text-white-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span class="small text-white">Active Today: {{ pdfs_today }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                    System Status
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="alert {% if error_pdfs > 0 %}alert-danger{% else %}alert-success{% endif %}">
+                                <h4 class="alert-heading">Error PDFs</h4>
+                                <p class="mb-0">{{ error_pdfs }} PDFs with errors</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert {% if pending_pdfs > 0 %}alert-warning{% else %}alert-success{% endif %}">
+                                <h4 class="alert-heading">Pending PDFs</h4>
+                                <p class="mb-0">{{ pending_pdfs }} PDFs pending extraction</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-info">
+                                <h4 class="alert-heading">Monthly Stats</h4>
+                                <p class="mb-0">{{ pdfs_month }} PDFs processed this month</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity and Users -->
+    <div class="row mb-4">
+        <!-- Recent PDFs -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-file-pdf mr-1"></i>
+                    Recent PDFs
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Vendor</th>
+                                    <th>Status</th>
+                                    <th>Uploaded</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pdf in recent_pdfs %}
+                                <tr>
+                                    <td>{{ pdf.file.name }}</td>
+                                    <td>{{ pdf.vendor.name }}</td>
+                                    <td>
+                                        <span class="badge {% if pdf.status == 'COMPLETED' %}badge-success{% elif pdf.status == 'ERROR' %}badge-danger{% else %}badge-warning{% endif %}">
+                                            {{ pdf.status }}
+                                        </span>
+                                    </td>
+                                    <td>{{ pdf.uploaded_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users List -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-users mr-1"></i> Users</span>
+                    <a href="{% url 'create_user' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-user-plus"></i> Add User
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        {% if user.is_admin %}
+                                        <span class="badge badge-primary">Admin</span>
+                                        {% else %}
+                                        <span class="badge badge-secondary">User</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.is_active %}
+                                        <span class="badge badge-success">Active</span>
+                                        {% else %}
+                                        <span class="badge badge-danger">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vendor Statistics -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-building mr-1"></i>
+                    Vendor Statistics
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Vendor Name</th>
+                                    <th>Total PDFs</th>
+                                    <th>Pending</th>
+                                    <th>Processing</th>
+                                    <th>Completed</th>
+                                    <th>Errors</th>
+                                    <th>Success Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for vendor in vendor_stats %}
+                                <tr>
+                                    <td>{{ vendor.name }}</td>
+                                    <td>{{ vendor.pdf_count }}</td>
+                                    <td>{{ vendor.pending_pdfs }}</td>
+                                    <td>{{ vendor.processing_pdfs }}</td>
+                                    <td>{{ vendor.completed_pdfs }}</td>
+                                    <td>
+                                        <span class="badge badge-danger">{{ vendor.error_pdfs }}</span>
+                                    </td>
+                                    <td>
+                                        {% if vendor.pdf_count > 0 %}
+                                            {% widthratio vendor.completed_pdfs vendor.pdf_count 100 %}%
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize DataTables
+        $('.table').DataTable({
+            "pageLength": 5,
+            "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "All"]]
+        });
+    });
+</script>
+{% endblock %}

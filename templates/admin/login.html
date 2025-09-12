@@ -1,0 +1,36 @@
+{% extends "admin/login.html" %}
+{% load i18n %}
+
+{% block content %}
+{{ block.super }}
+
+<!-- Quick access buttons -->
+<div style="margin-top: 2em; text-align: center;">
+    <h5>Quick Access</h5>
+    <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
+        <a href="{% url 'upload_pdf' %}" style="text-decoration: none;">
+            <button type="button" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Go to Upload Page</button>
+        </a>
+        <a href="{% url 'dashboard' %}" style="text-decoration: none;">
+            <button type="button" style="padding: 8px 16px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;">Go to Dashboard</button>
+        </a>
+    </div>
+</div>
+
+<script>
+// Ensure the form always has a next parameter pointing to the admin
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('login-form');
+    if (form) {
+        var nextInput = form.querySelector('input[name="next"]');
+        if (!nextInput) {
+            nextInput = document.createElement('input');
+            nextInput.type = 'hidden';
+            nextInput.name = 'next';
+            form.appendChild(nextInput);
+        }
+        nextInput.value = '/admin/';
+    }
+});
+</script>
+{% endblock %}

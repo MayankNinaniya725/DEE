@@ -1,0 +1,57 @@
+.badge {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-warning {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.badge-info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+/* Style improvements for the admin interface */
+#header {
+    background: #2c3e50;
+    color: white;
+}
+
+.module h2, .module caption {
+    background: #34495e;
+}
+
+div.breadcrumbs {
+    background: #95a5a6;
+}
+
+.button, input[type=submit], input[type=button], .submit-row input {
+    background: #3498db;
+}
+
+.button:hover, input[type=submit]:hover, input[type=button]:hover {
+    background: #2980b9;
+}
+
+/* Custom buttons */
+.button.default {
+    background: #27ae60;
+}
+
+.button.default:hover {
+    background: #219a52;
+}

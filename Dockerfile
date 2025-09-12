@@ -27,9 +27,12 @@ RUN pip install --upgrade pip \
 # Copy project
 COPY . /code/
 
-# Create media and logs directories
+# Create necessary directories and set permissions
 RUN mkdir -p /code/media/uploads \
     && mkdir -p /code/media/extracted \
     && mkdir -p /code/logs \
+    && mkdir -p /code/staticfiles \
     && chmod -R 777 /code/media \
-    && chmod -R 777 /code/logs
+    && chmod -R 777 /code/logs \
+    && chmod -R 777 /code/staticfiles \
+    && chmod +x /code/start.sh

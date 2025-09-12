@@ -13,13 +13,25 @@ class Vendor(models.Model):
 
     class Meta:
         ordering = ['name']
+        # Ensure vendor names are unique
+        constraints = [
+            models.UniqueConstraint(fields=['name'], name='unique_vendor_name')
+        ]
 
 class UploadedPDF(models.Model):
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending'),
+        ('PROCESSING', 'Processing'),
+        ('COMPLETED', 'Completed'),
+        ('ERROR', 'Error'),
+    )
+    
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE, related_name="pdfs")
     file = models.FileField(upload_to="uploads/")
     file_hash = models.CharField(max_length=64, blank=True, null=True)
     file_size = models.PositiveIntegerField(default=0)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
 
     def __str__(self):
         return f"{self.vendor.name} - {os.path.basename(self.file.name)}"
@@ -44,6 +56,7 @@ class ExtractedData(models.Model):
     pdf = models.ForeignKey(UploadedPDF, on_delete=models.CASCADE, related_name="extracted_data")
     field_key = models.CharField(max_length=255)
     field_value = models.TextField()
+    page_number = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

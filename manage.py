@@ -42,5 +42,6 @@ if __name__ == '__main__':
 
 #  http://localhost:8000/admin
 #  http://localhost:8000/upload/ for uploading PDFs
+#  http://0.0.0.0:8000/admin/
 
 # git rm --cached <file_or_folder_name> for untarcking a file but keeping it in the working directory.

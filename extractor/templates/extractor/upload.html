@@ -8,6 +8,13 @@
     <meta http-equiv="Expires" content="0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css?v=20250831">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css?v=20250831">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'extractor/css/upload.css' %}">
+    <link rel="stylesheet" href="{% static 'extractor/css/notifications.css' %}?v={% now 'U' %}">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.20/dist/sweetalert2.min.css">
+    <!-- Base notification script -->
+    <script src="{% static 'extractor/js/notifications.js' %}?v={% now 'U' %}"></script>
     <style>
         body {
             font-family: 'Segoe UI', Arial, sans-serif;
@@ -57,6 +64,13 @@
             overflow: hidden;
         }
         
+        .header-buttons {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 15px;
+        }
+        
         .header:before {
             content: '';
             position: absolute;
@@ -102,6 +116,15 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
             color: white;
+        }
+        
+        .admin-link {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+        }
+        
+        .admin-link:hover {
+            background: rgba(255, 255, 255, 0.25);
         }
         
         .dashboard-link i {
@@ -174,6 +197,36 @@
             transform: translateY(-3px);
         }
         
+        .file-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .file-input {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 12px;
+            background: white;
+            box-shadow: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            font-size: 15px;
+            color: #2d3436;
+        }
+        
+        .file-input:hover {
+            border-color: #4776E6;
+            box-shadow: 0 0 0 3px rgba(71, 118, 230, 0.1);
+        }
+        
+        .file-input:focus {
+            outline: none;
+            border-color: #4776E6;
+            box-shadow: 0 0 0 3px rgba(71, 118, 230, 0.2);
+        }
+        
         label {
             display: block;
             margin-bottom: 12px;
@@ -216,6 +269,11 @@
             cursor: pointer;
         }
         
+        input[type="file"] {
+            padding: 14px 18px;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        
         select {
             appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234776E6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
@@ -239,22 +297,6 @@
         }
         
         /* Customize file input */
-        input[type="file"] {
-            position: relative;
-            padding-left: 55px;
-        }
-        
-        input[type="file"]::before {
-            content: '\f15c';  /* Font Awesome file icon */
-            font-family: 'Font Awesome 5 Free';
-            font-weight: 400;
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 20px;
-            color: #4776E6;
-        }
         
         /* Enhance button animation */
         @keyframes pulse-glow {
@@ -398,7 +440,7 @@
             color: #34495e;
             font-size: 15px;
         }
-        select, input[type="file"] {
+        select {
             width: 100%;
             padding: 12px 15px;
             margin-bottom: 12px;
@@ -410,13 +452,108 @@
             color: #2d3436;
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
         }
-        select:focus, input[type="file"]:focus {
+        select:focus {
             border-color: #00c6ff;
             box-shadow: 0 0 0 3px rgba(0, 198, 255, 0.2);
             outline: none;
         }
-        select:hover, input[type="file"]:hover {
+        select:hover {
             border-color: #74b9ff;
+        }
+        
+        /* Clean file input styling */
+        input[type="file"].file-input {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 10px 10px 10px 40px;
+            background: white;
+            box-shadow: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 15px;
+            color: #2d3436;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        input[type="file"].file-input:hover {
+            border-color: #4776E6;
+        }
+        
+        input[type="file"].file-input:focus {
+            outline: none;
+            border-color: #4776E6;
+            box-shadow: 0 0 0 3px rgba(71, 118, 230, 0.2);
+        }
+        
+        input[type="file"].file-input::before {
+            content: '\f15c';  /* Font Awesome file icon */
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 400;
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: #4776E6;
+        }
+        
+        /* Drag & Drop Styles */
+        .file-drop-area {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s, border-color 0.3s;
+            min-height: 150px;
+        }
+        
+        .file-drop-area:hover, .file-drop-area.drag-over {
+            background-color: #e9ecef;
+            border-color: #6c757d;
+        }
+        
+        .file-drop-area.file-selected {
+            background-color: #e8f4ff;
+            border-color: #4776E6;
+            border-style: solid;
+        }
+        
+        .file-drop-icon {
+            font-size: 2.5rem;
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+        
+        .file-drop-message {
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .file-name {
+            color: #212529;
+            font-weight: bold;
+            margin-top: 0.5rem;
+            word-break: break-word;
+        }
+        
+        .hidden-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
         }
         
         button {
@@ -771,7 +908,18 @@
 <body>
     <div class="header">
         <h1>Upload PDF for Extraction</h1>
-        <a href="{% url 'dashboard' %}" class="dashboard-link">View Dashboard</a>
+        <div class="header-buttons">
+            <a href="{% url 'dashboard' %}" class="dashboard-link">View Dashboard</a>
+            {% if user.is_authenticated %}
+                <a href="/admin/" class="dashboard-link admin-link">
+                    <i class="fas fa-user-shield"></i> Go to Admin
+                </a>
+            {% else %}
+                <a href="/admin/login/" class="dashboard-link admin-link">
+                    <i class="fas fa-sign-in-alt"></i> Login to Admin
+                </a>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Server message alerts - shown at top of page for high visibility -->
@@ -801,11 +949,18 @@
 
     <div class="upload-form">
         <h1>Upload PDF and Extract Data</h1>
-        <form method="post" enctype="multipart/form-data" id="uploadForm">
+        <form method="post" enctype="multipart/form-data" id="uploadForm" data-show-loading="true">
             {% csrf_token %}
             <div class="form-group">
                 <label for="pdf">Choose PDF:</label>
-                <input type="file" name="pdf" id="pdf" accept=".pdf" required>
+                <div id="drop-area" class="file-drop-area">
+                    <div class="file-drop-icon">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div class="file-drop-message">Drop the pdf here</div>
+                    <div id="file-name" class="file-name"></div>
+                    <input type="file" name="pdf" id="pdf" accept=".pdf" required class="file-input hidden-input">
+                </div>
             </div>
 
             <div class="form-group">
@@ -818,9 +973,9 @@
             </div>
 
             <button type="submit" id="submitBtn">
-        <i class="fas fa-cloud-upload-alt"></i>
-        Extract Data
-    </button>
+                <i class="fas fa-cloud-upload-alt"></i>
+                Extract Data
+            </button>
         </form>
 
     <div class="loading-spinner" id="loadingSpinner">
@@ -843,123 +998,113 @@
         <p><i class="fas fa-file-pdf"></i> <strong>Note:</strong> Only PDF files are supported. Please ensure the PDF matches the selected vendor's format.</p>
     </div>
 
-    <!-- Side notification container for JS notifications -->
-    <div id="notification-container">
-        {% for message in messages %}
-            {% if message.tags == 'success' %}
-                <div class="notification notification-success" role="alert">
-                    <span class="notification-icon">✓</span>
-                    <span class="notification-text">{{ message }}</span>
-                    <button type="button" class="notification-close" onclick="this.parentElement.remove()">&times;</button>
-                </div>
-            {% elif message.tags == 'warning' %}
-                <div class="notification notification-warning" role="alert">
-                    <span class="notification-icon">⚠</span>
-                    <span class="notification-text">{{ message }}</span>
-                    <button type="button" class="notification-close" onclick="this.parentElement.remove()">&times;</button>
-                </div>
-            {% elif message.tags == 'error' %}
-                <div class="notification notification-error" role="alert">
-                    <span class="notification-icon">✗</span>
-                    <span class="notification-text">{{ message }}</span>
-                    <button type="button" class="notification-close" onclick="this.parentElement.remove()">&times;</button>
-                </div>
-            {% else %}
-                <div class="notification notification-info" role="alert">
-                    <span class="notification-icon">ℹ</span>
-                    <span class="notification-text">{{ message }}</span>
-                    <button type="button" class="notification-close" onclick="this.parentElement.remove()">&times;</button>
-                </div>
-            {% endif %}
-        {% endfor %}
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js?v=20250831"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.20/dist/sweetalert2.min.js"></script>
+    <!-- Enhanced notification system -->
+    <script src="{% static 'extractor/js/enhanced-notifications.js' %}?v={% now 'U' %}"></script>
     <script>
-        // Notification system
-        function showNotification(message, type = 'info') {
-            const container = document.getElementById('notification-container');
-            let icon = 'ℹ';
-            
-            if (type === 'success') icon = '✓';
-            else if (type === 'warning') icon = '⚠';
-            else if (type === 'error') icon = '✗';
-            
-            const html = `
-                <div class="notification notification-${type}" role="alert">
-                    <span class="notification-icon">${icon}</span>
-                    <span class="notification-text">${message}</span>
-                    <button type="button" class="notification-close" onclick="this.parentElement.remove()">&times;</button>
-                </div>
-            `;
-            
-            container.insertAdjacentHTML('beforeend', html);
-            
-            // Auto-remove after 5 seconds
-            const notification = container.lastElementChild;
-            setTimeout(() => {
-                if (notification && notification.parentNode) {
-                    notification.classList.add('fade-out');
-                    setTimeout(() => notification.remove(), 300);
-                }
-            }, 5000);
-        }
-        
         // Form submission handler with progress tracking
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
             // Show processing UI
             document.getElementById('submitBtn').style.display = 'none';
             document.getElementById('loadingSpinner').style.display = 'block';
             document.getElementById('progressContainer').style.display = 'block';
-            
-            // Store a flag to check if form is being submitted
-            localStorage.setItem('formSubmitted', 'true');
-            
-            // After a short delay, redirect to dashboard to ensure the form has been submitted
-            // This is a backup in case the server-side redirect doesn't work
-            setTimeout(function() {
+
+            try {
+                const formData = new FormData(this);
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                let redirectTimeout;
+                const response = await fetch('{% url "process_pdf" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    // Store error in session and redirect
+                    window.location.href = '{% url "dashboard" %}';
+                    return;
+                }
+                
+                // If we have a task ID, store it and redirect
+                if (data.task_id) {
+                    localStorage.setItem('lastTaskId', data.task_id);
+                }
+                
+                // Redirect to dashboard properly
+                if (data.redirect) {
+                    // Make sure we're using the absolute path, not a relative one
+                    window.location.href = data.redirect.startsWith('/') ? data.redirect : '/' + data.redirect;
+                } else {
+                    // Default fallback to dashboard
+                    window.location.href = '{% url "dashboard" %}';
+                }
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                // Redirect to dashboard with error
                 window.location.href = '{% url "dashboard" %}';
-            }, 1500);
-            
-            // Allow the form to submit normally
+            }
         });
         
-        // Modified notification handling
-        window.addEventListener('load', function() {
-            // Check if we were just redirected from form submission
-            if (localStorage.getItem('formSubmitted') === 'true') {
-                // Clear the flag
-                localStorage.removeItem('formSubmitted');
-                
-                // We should never reach here since the server should redirect to dashboard
-                // But just in case, redirect to dashboard if we detect a form submission
-                window.location.href = '{% url "dashboard" %}';
-                return;
+        // Initialize notification system
+        const notifications = document.querySelectorAll('.notification');
+        notifications.forEach(function(notification, index) {
+            // Set custom icon based on type
+            const type = notification.classList.contains('notification-success') ? 'success' :
+                       notification.classList.contains('notification-warning') ? 'warning' :
+                       notification.classList.contains('notification-error') ? 'error' : 'info';
+            
+            const iconMap = {
+                'success': '<i class="fas fa-check-circle"></i>',
+                'warning': '<i class="fas fa-exclamation-triangle"></i>',
+                'error': '<i class="fas fa-times-circle"></i>',
+                'info': '<i class="fas fa-info-circle"></i>'
+            };
+            
+            const iconSpan = notification.querySelector('.notification-icon');
+            if (iconSpan) {
+                iconSpan.innerHTML = iconMap[type];
             }
             
-            // Handle notifications
-            const notifications = document.querySelectorAll('.notification');
-            notifications.forEach(function(notification, index) {
-                setTimeout(() => {
-                    notification.classList.add('fade-out');
-                    setTimeout(() => notification.remove(), 300);
-                }, 5000 + (index * 500)); // Stagger dismissal
-            });
-            
-            // Check for task ID in local storage (from previous upload)
-            const storedTaskId = localStorage.getItem('lastTaskId');
-            if (storedTaskId) {
-                // Show progress UI and start polling
-                document.getElementById('submitBtn').style.display = 'none';
-                document.getElementById('loadingSpinner').style.display = 'block';
-                document.getElementById('progressContainer').style.display = 'block';
-                
-                pollTaskStatus(storedTaskId);
-                
-                // Clear from storage after starting to poll
-                localStorage.removeItem('lastTaskId');
+            // Add type-specific styles
+            if (type === 'warning' || type === 'error') {
+                notification.style.animation = 'shake 0.5s';
             }
+
+            // Handle delayed dismissal
+            setTimeout(() => {
+                notification.classList.add('fade-out');
+                setTimeout(() => notification.remove(), 300);
+            }, 5000 + (index * 500)); // Stagger dismissal
         });
+        
+        // Check for task ID in local storage (from previous upload)
+        const storedTaskId = localStorage.getItem('lastTaskId');
+        if (storedTaskId) {
+            // Show progress UI and start polling
+            document.getElementById('submitBtn').style.display = 'none';
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('progressContainer').style.display = 'block';
+            
+            pollTaskStatus(storedTaskId);
+            
+            // Clear from storage after starting to poll
+            localStorage.removeItem('lastTaskId');
+        }
+        
+        // Helper function to reset UI elements
+        function resetUI() {
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('submitBtn').style.display = 'block';
+        }
         
         // Poll task status for progress updates
         function pollTaskStatus(taskId) {
@@ -969,11 +1114,15 @@
             
             const pollInterval = setInterval(async () => {
                 try {
-                    const response = await fetch(`/api/task-status/${taskId}/`);
+                    const response = await fetch(`/task-status/${taskId}/`);
                     const data = await response.json();
                     
                     if (data.state === 'PROGRESS') {
-                        const percent = Math.round((data.current / data.total) * 100);
+                        let percent = 25; // Default progress
+                        if (data.current && data.total) {
+                            percent = Math.round((data.current / data.total) * 100);
+                        }
+                        
                         progressBar.style.width = `${percent}%`;
                         progressBar.setAttribute('aria-valuenow', percent);
                         progressPercent.textContent = `${percent}%`;
@@ -995,46 +1144,171 @@
                         progressBar.setAttribute('aria-valuenow', 100);
                         progressPercent.textContent = '100%';
                         
-                        // Show appropriate notification
-                        if (data.status === 'completed') {
-                            showNotification(`✅ Extraction completed successfully! ${data.extracted} fields extracted.`, 'success');
-                            // Redirect to dashboard after completion
+                        // Handle successful completion
+                        if (data.status === 'completed' || data.status === 'partial_success_ocr') {
+                            // Show success notification and offer to go to dashboard
+                            showExtractionNotification(data.extracted || 0, 'completed');
+                        } else {
+                            // Show partial success notification
+                            showExtractionNotification(data.extracted || 0, 'partial_success_ocr');
+                        }
+                        
+                        // Clear task ID from storage
+                        localStorage.removeItem('lastTaskId');
+                        
+                        // Redirect after a short delay
+                        setTimeout(() => {
                             window.location.href = '{% url "dashboard" %}';
-                        } 
-                        else if (data.status === 'failed_ocr') {
-                            showNotification('⚠️ OCR fallback under development. Some pages may not be processed correctly.', 'warning');
-                            // Hide processing UI after a delay
-                            setTimeout(() => {
-                                document.getElementById('loadingSpinner').style.display = 'none';
-                                document.getElementById('progressContainer').style.display = 'none';
-                                document.getElementById('submitBtn').style.display = 'block';
-                            }, 1000);
-                        }
-                        else {
-                            // Hide processing UI after a delay for any other status
-                            setTimeout(() => {
-                                document.getElementById('loadingSpinner').style.display = 'none';
-                                document.getElementById('progressContainer').style.display = 'none';
-                                document.getElementById('submitBtn').style.display = 'block';
-                            }, 1000);
-                        }
+                        }, 1500);
                     } 
                     else if (data.state === 'FAILURE') {
                         clearInterval(pollInterval);
-                        
-                        // Hide processing UI
-                        document.getElementById('loadingSpinner').style.display = 'none';
-                        document.getElementById('progressContainer').style.display = 'none';
-                        document.getElementById('submitBtn').style.display = 'block';
+                        resetUI();
                         
                         // Show error notification
-                        showNotification('❌ Extraction failed. Please check logs for details.', 'error');
+                        // Show error notification
+                        showEnhancedNotification(data.message || 'Extraction failed. Please check logs for details.', 'error', {
+                            title: 'Extraction Failed',
+                            position: 'center',
+                            timer: 10000,
+                            showConfirmButton: true
+                        });
+                        
+                        // Clear task ID from storage
+                        localStorage.removeItem('lastTaskId');
+                        
+                        // Show extract button again
+                        document.getElementById('submitBtn').style.display = 'block';
                     }
                 } catch (error) {
                     console.error('Error polling task status:', error);
                 }
             }, 1000);
         }
+        
+        // Drag and drop file upload functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropArea = document.getElementById('drop-area');
+            const fileInput = document.getElementById('pdf');
+            const fileName = document.getElementById('file-name');
+            
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            // Highlight drop area when item is dragged over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            // Handle dropped files
+            dropArea.addEventListener('drop', handleDrop, false);
+            
+            // Handle manual file selection
+            fileInput.addEventListener('change', handleFiles, false);
+            
+            // Click anywhere in drop area to trigger file input
+            dropArea.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            function highlight() {
+                dropArea.classList.add('drag-over');
+            }
+            
+            function unhighlight() {
+                dropArea.classList.remove('drag-over');
+            }
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length) {
+                    fileInput.files = files;
+                    handleFiles();
+                }
+            }
+            
+            function handleFiles() {
+                if (fileInput.files.length) {
+                    const file = fileInput.files[0];
+                    
+                    // Validate file type
+                    if (file.type !== 'application/pdf') {
+                        showEnhancedNotification('Please select a PDF file', 'error', {
+                            title: 'File Required',
+                            position: 'center'
+                        });
+                        fileInput.value = '';
+                        fileName.textContent = '';
+                        return;
+                    }
+                    
+                    // Display file name
+                    fileName.textContent = file.name;
+                    
+                    // Add a "selected" class to the drop area for styling
+                    dropArea.classList.add('file-selected');
+                    
+                    // Show a success notification
+                    showEnhancedNotification('PDF file selected successfully', 'success', {
+                        title: 'File Selected',
+                        timer: 3000
+                    });
+                }
+            }
+        });
+        
+        // Process Django messages on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags == 'success' %}
+                        // Check if the message is about extraction completion
+                        if ("{{ message.message|lower|escapejs }}".includes('extraction completed')) {
+                            // Extract the number of fields from the message
+                            const messageText = "{{ message.message|escapejs }}";
+                            const match = messageText.match(/(\d+) fields extracted/);
+                            const extractedCount = match ? match[1] : 0;
+                            
+                            // Show the enhanced extraction notification
+                            showExtractionNotification(extractedCount, 'completed');
+                        } else {
+                            showEnhancedNotification("{{ message.message|escapejs }}", "success");
+                        }
+                    {% elif message.tags == 'warning' %}
+                        // Check if the message is about partial extraction
+                        if ("{{ message.message|lower|escapejs }}".includes('partial extraction')) {
+                            // Extract the number of fields from the message
+                            const messageText = "{{ message.message|escapejs }}";
+                            const match = messageText.match(/(\d+) fields extracted/);
+                            const extractedCount = match ? match[1] : 0;
+                            
+                            // Show the enhanced extraction notification
+                            showExtractionNotification(extractedCount, 'partial_success_ocr');
+                        } else {
+                            showEnhancedNotification("{{ message.message|escapejs }}", "warning");
+                        }
+                    {% elif message.tags == 'error' %}
+                        showEnhancedNotification("{{ message.message|escapejs }}", "error");
+                    {% else %}
+                        showEnhancedNotification("{{ message.message|escapejs }}", "info");
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        });
     </script>
 </body>
 </html>

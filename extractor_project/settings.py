@@ -8,13 +8,28 @@ import os  # Needed for os.getenv
 # Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Custom user model
+AUTH_USER_MODEL = 'extractor.CustomUser'
+
+# Authentication settings
+LOGIN_URL = '/login/'  # Updated to match our URL pattern
+LOGIN_REDIRECT_URL = '/admin/'  # Redirect to admin panel after login
+LOGOUT_REDIRECT_URL = '/admin/login/'  # Redirect to admin login page after logout
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "your-default-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "True") == "True"
+DEBUG = True
 
-ALLOWED_HOSTS = ['*']  # Allow all hosts for development
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']  # Allow all hosts for development
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+
+# Custom User Model is already defined above
+# AUTH_USER_MODEL = 'extractor.CustomUser'
+
+# Authentication Settings are already defined above
+# These settings were duplicated and conflicting
 
 # Application definition
 INSTALLED_APPS = [
@@ -118,7 +133,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'extractor.middleware.NoCacheMiddleware',  # Add our custom middleware
+    'extractor.middleware.NoCacheMiddleware',  # No-cache middleware
+    'extractor.middleware.BrokenLinkMiddleware',  # Broken link handling middleware
 ]
 
 ROOT_URLCONF = 'extractor_project.urls'
@@ -126,8 +142,11 @@ ROOT_URLCONF = 'extractor_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'extractor' / 'templates'],
-          'DIRS': [BASE_DIR / "templates"], 
+        'DIRS': [
+            BASE_DIR / 'extractor' / 'templates',
+            BASE_DIR / "templates",
+            Path('/usr/local/lib/python3.11/site-packages/jazzmin/templates'),
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -145,12 +164,8 @@ WSGI_APPLICATION = 'extractor_project.wsgi.application'
 # Database
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'extractor_db',
-        'USER': 'extractor_user',
-        'PASSWORD': 'strongpassword123',
-        'HOST': 'db',  # Docker service name
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -171,7 +186,7 @@ USE_TZ = True
 
 # Static & Media files
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'static'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Changed from 'static' to 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'extractor' / 'static',
 ]
@@ -179,13 +194,20 @@ STATICFILES_DIRS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Define vendor configs directory
+VENDOR_CONFIGS_DIR = BASE_DIR / 'media' / 'vendor_configs'
+
 # Ensure media and static directories exist
 os.makedirs(MEDIA_ROOT / 'uploads', exist_ok=True)
 os.makedirs(MEDIA_ROOT / 'extracted', exist_ok=True)
+os.makedirs(VENDOR_CONFIGS_DIR, exist_ok=True)
 os.makedirs(STATIC_ROOT, exist_ok=True)
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Authentication settings (already set above)
+# Removing duplicate settings to avoid confusion
 
 # Celery Configuration
 CELERY_BROKER_URL = 'redis://redis:6379/0'  # Docker service name
@@ -194,3 +216,23 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+# Updated TEMPLATES setting
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            BASE_DIR / 'extractor' / 'templates',
+            BASE_DIR / 'templates',
+            '/usr/local/lib/python3.11/site-packages/jazzmin/templates',
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]

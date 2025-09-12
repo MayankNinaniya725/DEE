@@ -1,0 +1,552 @@
+import os
+import io
+import json
+import logging
+import tempfile
+import shutil
+import zipfile
+import hashlib
+from datetime import datetime
+
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.core.files.storage import FileSystemStorage
+from django.contrib import messages
+from django.contrib.auth import logout
+from django.db.models import Count, Q
+from django.core.exceptions import ValidationError
+from django.conf import settings
+from django.http import JsonResponse, HttpResponse, FileResponse
+from django.utils import timezone
+from celery.result import AsyncResult
+
+import pandas as pd
+from openpyxl import load_workbook
+
+from .models import ExtractedData, Vendor, UploadedPDF
+from .utils.extractor import extract_pdf_fields
+from .utils.config_loader import load_vendor_config
+from .tasks import process_pdf_file
+
+# Configure logging
+logger = logging.getLogger('extractor')
+
+
+def store_dashboard_message(request, message, level='info', extra_data=None):
+    """Store message in session for dashboard display"""
+    if not request.session.get('pdf_messages'):
+        request.session['pdf_messages'] = []
+    request.session['pdf_messages'].append({
+        'message': message,
+        'level': level,
+        'timestamp': timezone.now().isoformat(),
+        'extra_data': extra_data or {}
+    })
+    request.session.modified = True
+
+
+def create_extraction_excel(excel_path, pdf_obj, extracted_data):
+    """Creates a detailed Excel file with multiple sheets for extracted data"""
+    pdf_filename = os.path.basename(pdf_obj.file.name)
+    with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
+        # Summary sheet
+        summary_data = {
+            'Information': [
+                'File Name', 'Vendor', 'Upload Date', 'Total Fields',
+                'Total Pages', 'Status'
+            ],
+            'Value': [
+                pdf_filename,
+                pdf_obj.vendor.name,
+                pdf_obj.uploaded_at.strftime("%Y-%m-%d %H:%M:%S"),
+                extracted_data.count(),
+                len(set(item.page_number for item in extracted_data if item.page_number)),
+                'Extraction Complete'
+            ]
+        }
+        pd.DataFrame(summary_data).to_excel(writer, sheet_name='Summary', index=False)
+
+        # Extracted Data sheet
+        main_data = [{
+            'Field Type': item.field_key,
+            'Extracted Value': item.field_value,
+            'Page Number': item.page_number,
+            'PDF Location': f'extracted_pdfs/page_{item.page_number}.pdf' if item.page_number else 'N/A',
+            'Extracted At': item.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        } for item in extracted_data]
+        if main_data:
+            pd.DataFrame(main_data).to_excel(writer, sheet_name='Extracted Data', index=False)
+
+        # Key Fields sheet
+        key_fields = ['PLATE_NO', 'HEAT_NO', 'TEST_CERT_NO']
+        key_data = []
+        for field in key_fields:
+            matches = [item for item in extracted_data if item.field_key == field]
+            for match in matches:
+                key_data.append({
+                    'Field': field,
+                    'Value': match.field_value,
+                    'Page': match.page_number,
+                    'PDF File': f'extracted_pdfs/page_{match.page_number}.pdf',
+                    'Status': 'Verified' if match.field_value else 'Not Found'
+                })
+        if key_data:
+            pd.DataFrame(key_data).to_excel(writer, sheet_name='Key Fields', index=False)
+
+        # Page Summary sheet
+        page_data = []
+        for page in sorted(set(item.page_number for item in extracted_data if item.page_number)):
+            page_fields = [item for item in extracted_data if item.page_number == page]
+            key_fields_found = [
+                f"{item.field_key}: {item.field_value}"
+                for item in page_fields
+                if item.field_key in key_fields and item.field_value
+            ]
+            page_data.append({
+                'Page Number': page,
+                'Fields Found': len(page_fields),
+                'PDF File': f'extracted_pdfs/page_{page}.pdf',
+                'Key Fields Found': ', '.join(key_fields_found) if key_fields_found else 'None'
+            })
+        if page_data:
+            pd.DataFrame(page_data).to_excel(writer, sheet_name='Page Summary', index=False)
+
+
+def process_pdf(request):
+    """Handle PDF upload and processing with duplicate detection and vendor validation"""
+    if request.method == 'POST' and request.FILES.get('pdf'):
+        vendor_id = request.POST.get('vendor')
+        pdf_file = request.FILES['pdf']
+
+        if not vendor_id:
+            return JsonResponse({'error': 'Vendor selection is required', 'type': 'validation'}, status=400)
+
+        if not pdf_file.name.lower().endswith('.pdf'):
+            return JsonResponse({'error': 'Uploaded file must be a PDF', 'type': 'validation'}, status=400)
+
+        try:
+            vendor = Vendor.objects.get(id=vendor_id)
+
+            # Calculate file hash for duplicate detection
+            file_content = pdf_file.read()
+            file_hash = hashlib.md5(file_content).hexdigest()
+            pdf_file.seek(0)
+
+            existing_pdf = UploadedPDF.objects.filter(file_hash=file_hash).first()
+            if existing_pdf:
+                # If vendor mismatch, reject
+                if existing_pdf.vendor.id != vendor.id:
+                    msg = f"PDF previously uploaded for vendor '{existing_pdf.vendor.name}'. Please select the correct vendor."
+                    store_dashboard_message(request, msg, 'warning', {'original_vendor': existing_pdf.vendor.name, 'new_vendor': vendor.name})
+                    return JsonResponse({'redirect': reverse('dashboard')}, status=200)
+
+                # If extraction incomplete, retry extraction
+                if existing_pdf.status != 'COMPLETED':
+                    try:
+                        config_path = os.path.join(settings.MEDIA_ROOT, vendor.config_file.name) if vendor.config_file else None
+                        vendor_config = load_vendor_config(config_path) if config_path else None
+                        task = process_pdf_file.delay(existing_pdf.id, vendor_config)
+                        store_dashboard_message(request, "Retrying extraction for duplicate PDF", 'info')
+                        return JsonResponse({'message': 'Duplicate PDF detected, retrying extraction.', 'task_id': task.id, 'type': 'duplicate'})
+                    except Exception as e:
+                        logger.error(f"Error retrying extraction: {str(e)}", exc_info=True)
+                        store_dashboard_message(request, "Error retrying extraction", 'error')
+                        return JsonResponse({'error': 'Error retrying extraction', 'type': 'extraction_error'}, status=500)
+
+                return JsonResponse({'error': f'This PDF was already processed on {existing_pdf.uploaded_at.strftime("%Y-%m-%d %H:%M:%S")}', 'type': 'duplicate'}, status=400)
+
+            # Save new PDF entry
+            pdf = UploadedPDF.objects.create(
+                file=pdf_file,
+                vendor=vendor,
+                file_hash=file_hash,
+                file_size=pdf_file.size,
+                status='PROCESSING',
+                user=request.user if not request.user.is_anonymous else None
+            )
+
+            # Validate vendor config
+            config_path = os.path.join(settings.MEDIA_ROOT, vendor.config_file.name) if vendor.config_file else None
+            if not config_path or not os.path.exists(config_path):
+                pdf.status = 'ERROR'
+                pdf.save()
+                msg = f"Missing vendor configuration for '{vendor.name}'"
+                store_dashboard_message(request, msg, 'error')
+                return JsonResponse({'redirect': reverse('dashboard')}, status=200)
+
+            try:
+                vendor_config = load_vendor_config(config_path)
+            except Exception as e:
+                logger.error(f"Error loading vendor config: {str(e)}", exc_info=True)
+                logger.error(f"Attempted config path: {config_path}")
+                logger.error(f"File exists: {os.path.exists(config_path) if config_path else False}")
+                pdf.status = 'ERROR'
+                pdf.save()
+                msg = f"Invalid vendor configuration for '{vendor.name}'"
+                store_dashboard_message(request, msg, 'error')
+                return JsonResponse({'redirect': reverse('dashboard')}, status=200)
+
+            # Start the Celery task for extraction
+            # Start the task and store task ID
+            task = process_pdf_file.delay(pdf.id, vendor_config)
+            request.session['last_task_id'] = task.id
+            request.session.modified = True
+            
+            store_dashboard_message(request, "PDF uploaded successfully. Starting extraction...", 'success')
+            return JsonResponse({
+                'task_id': task.id,
+                'redirect': reverse('dashboard')
+            })
+
+        except Vendor.DoesNotExist:
+            store_dashboard_message(request, "Selected vendor not found", 'error')
+            return JsonResponse({'redirect': reverse('dashboard')}, status=200)
+
+        except Exception as e:
+            logger.error(f"Error processing PDF: {str(e)}", exc_info=True)
+            store_dashboard_message(request, "Error processing PDF: " + str(e), 'error')
+            return JsonResponse({'redirect': reverse('dashboard')}, status=200)
+
+    store_dashboard_message(request, "Invalid request", 'error')
+    return JsonResponse({'redirect': reverse('dashboard')}, status=200)
+
+
+def dashboard(request):
+    """Dashboard view showing summary of uploaded PDFs and extraction status"""
+    if request.user.is_superuser:
+        recent_pdfs = UploadedPDF.objects.select_related('vendor').order_by('-uploaded_at')[:20]
+    else:
+        recent_pdfs = UploadedPDF.objects.filter(user=request.user).select_related('vendor').order_by('-uploaded_at')[:20]
+
+    vendors = Vendor.objects.annotate(pdf_count=Count('pdfs'))
+
+    status_filter = Q()
+    if not request.user.is_superuser:
+        status_filter &= Q(user=request.user)
+
+    status_summary = {
+        'pending': UploadedPDF.objects.filter(status_filter & Q(status='PENDING')).count(),
+        'processing': UploadedPDF.objects.filter(status_filter & Q(status='PROCESSING')).count(),
+        'completed': UploadedPDF.objects.filter(status_filter & Q(status='COMPLETED')).count(),
+        'error': UploadedPDF.objects.filter(status_filter & Q(status='ERROR')).count(),
+    }
+
+    dashboard_messages = request.session.pop('pdf_messages', [])
+    for msg in dashboard_messages:
+        level_mapping = {
+            'success': messages.SUCCESS,
+            'error': messages.ERROR,
+            'warning': messages.WARNING,
+            'info': messages.INFO
+        }
+        level = level_mapping.get(msg['level'], messages.INFO)
+        messages.add_message(request, level, msg['message'])
+
+    extraction_filter = Q()
+    if not request.user.is_superuser:
+        extraction_filter &= Q(pdf__user=request.user)
+
+    recent_extractions = ExtractedData.objects.select_related('pdf', 'vendor').filter(extraction_filter).order_by('-created_at')[:20]
+
+    context = {
+        'recent_pdfs': recent_pdfs,
+        'vendors': vendors,
+        'status_summary': status_summary,
+        'recent_extractions': recent_extractions,
+        'task_id': request.session.get('last_task_id'),
+    }
+    return render(request, 'extractor/dashboard.html', context)
+
+
+def task_status(request, task_id):
+    """Get the status of a Celery async task"""
+    res = AsyncResult(task_id)
+    payload = {"state": res.state}
+
+    if res.state == "PROGRESS":
+        meta = res.info or {}
+        payload.update({
+            "current": meta.get("current", 0),
+            "total": meta.get("total", 1),
+            "phase": meta.get("phase", "")
+        })
+    elif res.state == "SUCCESS":
+        payload.update(res.result or {})
+        if 'last_task_id' in request.session and request.session['last_task_id'] == task_id:
+            del request.session['last_task_id']
+            request.session.modified = True
+    elif res.state == "FAILURE":
+        payload.update({"status": "failed", "message": "Task failed"})
+        if 'last_task_id' in request.session and request.session['last_task_id'] == task_id:
+            del request.session['last_task_id']
+            request.session.modified = True
+
+    return JsonResponse(payload)
+
+
+def clear_task_id(request):
+    """Clear celery task ID from session"""
+    if 'last_task_id' in request.session:
+        del request.session['last_task_id']
+        request.session.modified = True
+    return JsonResponse({"success": True})
+
+
+def download_excel(request):
+    """Download extraction results as Excel file, for single PDF or all data"""
+    pdf_id = request.GET.get('pdf_id')
+    try:
+        if pdf_id:
+            pdf = UploadedPDF.objects.get(id=pdf_id)
+            extracted_data = ExtractedData.objects.filter(pdf=pdf).order_by('field_key')
+            if not extracted_data.exists():
+                messages.warning(request, "No extracted data found for this PDF")
+                return redirect("dashboard")
+
+            excel_buffer = io.BytesIO()
+            create_extraction_excel(excel_buffer, pdf, extracted_data)
+            excel_buffer.seek(0)
+
+            filename = f"{os.path.splitext(pdf.file.name)[0]}_extraction.xlsx"
+            return FileResponse(excel_buffer, as_attachment=True, filename=filename)
+
+        else:
+            backups_dir = os.path.join(settings.MEDIA_ROOT, "backups")
+            master_path = os.path.join(backups_dir, "master.xlsx")
+            if not os.path.exists(master_path):
+                messages.error(request, "No extracted data available for download")
+                return redirect("dashboard")
+
+            return FileResponse(open(master_path, "rb"), as_attachment=True, filename="extracted_data.xlsx")
+
+    except UploadedPDF.DoesNotExist:
+        messages.error(request, "PDF file not found")
+        return redirect("dashboard")
+    except Exception as e:
+        logger.error(f"Error downloading Excel: {str(e)}", exc_info=True)
+        messages.error(request, "Could not generate Excel file")
+        return redirect("dashboard")
+
+
+def regenerate_excel(request):
+    """Regenerate all Excel files for extracted PDFs"""
+    try:
+        pdfs = UploadedPDF.objects.all()
+        for pdf in pdfs:
+            extracted_data = ExtractedData.objects.filter(pdf=pdf)
+            if extracted_data.exists():
+                excel_path = os.path.join(settings.MEDIA_ROOT, 'extracted', f"{os.path.splitext(pdf.file.name)[0]}_extraction.xlsx")
+                create_extraction_excel(excel_path, pdf, extracted_data)
+        messages.success(request, "Excel files regenerated successfully")
+    except Exception as e:
+        logger.error(f"Error regenerating Excel files: {str(e)}", exc_info=True)
+        messages.error(request, "Error regenerating Excel files")
+    return redirect("dashboard")
+
+
+def download_pdfs_with_excel(request):
+    """
+    Creates a ZIP file containing:
+    - Original PDF file
+    - All extracted PDF pages
+    - Detailed Excel file with extraction data
+    - README file explaining the contents
+    """
+    pdf_id = request.GET.get('pdf_id')
+    source_pdf = request.GET.get('source')
+
+    try:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            if pdf_id or source_pdf:
+                try:
+                    if pdf_id:
+                        pdf = UploadedPDF.objects.get(id=pdf_id)
+                    else:
+                        pdf_filename = os.path.basename(source_pdf)
+                        pdf = UploadedPDF.objects.filter(file__contains=pdf_filename).first()
+                    if not pdf:
+                        messages.warning(request, f"No PDF found with filename: {pdf_filename}")
+                        return redirect("dashboard")
+
+                    extracted_data = ExtractedData.objects.filter(pdf=pdf).order_by('field_key')
+                    if not extracted_data.exists():
+                        messages.warning(request, "No extracted data found for this PDF")
+                        return redirect("dashboard")
+
+                    pdf_dir = os.path.join(temp_dir, 'package')
+                    orig_dir = os.path.join(pdf_dir, 'original')
+                    extracted_dir = os.path.join(pdf_dir, 'extracted_pdfs')
+                    os.makedirs(orig_dir, exist_ok=True)
+                    os.makedirs(extracted_dir, exist_ok=True)
+
+                    # Copy original PDF
+                    pdf_filename = os.path.basename(pdf.file.name)
+                    orig_pdf_path = os.path.join(orig_dir, pdf_filename)
+                    if os.path.exists(pdf.file.path):
+                        shutil.copy2(pdf.file.path, orig_pdf_path)
+
+                    # Copy extracted PDFs
+                    base_extracted_dir = os.path.join(settings.MEDIA_ROOT, 'extracted')
+                    pdf_name_without_ext = os.path.splitext(pdf_filename)[0]
+                    extracted_files = []
+                    if os.path.exists(base_extracted_dir):
+                        for root, _, files in os.walk(base_extracted_dir):
+                            for file in files:
+                                if file.startswith(pdf_name_without_ext) and file.endswith('.pdf'):
+                                    src_path = os.path.join(root, file)
+                                    dest_path = os.path.join(extracted_dir, file)
+                                    shutil.copy2(src_path, dest_path)
+                                    extracted_files.append(file)
+
+                    # Create Excel file
+                    excel_path = os.path.join(pdf_dir, 'extraction_summary.xlsx')
+                    create_extraction_excel(excel_path, pdf, extracted_data)
+
+                    # Create ZIP file
+                    zip_filename = f"{pdf_name_without_ext}_extraction_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+                    zip_buffer = io.BytesIO()
+                    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                        for root, _, files in os.walk(pdf_dir):
+                            for file in files:
+                                file_path = os.path.join(root, file)
+                                arcname = os.path.relpath(file_path, pdf_dir)
+                                zipf.write(file_path, arcname=arcname)
+
+                        # Add README
+                        readme_content = f"""Extraction Summary
+PDF: {pdf_filename}
+Vendor: {pdf.vendor.name}
+Uploaded: {pdf.uploaded_at.strftime('%Y-%m-%d %H:%M:%S')}
+Extracted Fields: {extracted_data.count()}
+Directory Structure:
+- original/ : Original uploaded PDF
+- extracted_pdfs/ : Individual extracted pages
+- extraction_summary.xlsx : Detailed Excel file with:
+  * Summary : Overview and statistics
+  * Extracted Data : All extracted fields
+  * Key Fields : Certificate data (PLATE_NO, HEAT_NO, etc.)
+  * Page Summary : Page-by-page breakdown
+Extracted Files:
+{chr(10).join(f"- {file}" for file in extracted_files)}
+"""
+                        zipf.writestr("README.txt", readme_content)
+                    zip_buffer.seek(0)
+                    response = FileResponse(zip_buffer, as_attachment=True, filename=zip_filename)
+                    return response
+
+                except UploadedPDF.DoesNotExist:
+                    messages.error(request, "PDF file not found")
+                    return redirect("dashboard")
+
+            else:
+                # Get all PDFs with extracted data
+                pdfs_with_data = UploadedPDF.objects.filter(extracted_data__isnull=False).distinct()
+                if not pdfs_with_data.exists():
+                    messages.warning(request, "No PDFs with extracted data found")
+                    return redirect("dashboard")
+
+                package_dir = os.path.join(temp_dir, 'package')
+                os.makedirs(package_dir, exist_ok=True)
+                all_data = []
+
+                for pdf in pdfs_with_data:
+                    pdf_name_without_ext = os.path.splitext(os.path.basename(pdf.file.name))[0]
+                    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                    orig_dir = os.path.join(pdf_dir, 'original')
+                    extracted_dir = os.path.join(pdf_dir, 'extracted_pdfs')
+                    os.makedirs(orig_dir, exist_ok=True)
+                    os.makedirs(extracted_dir, exist_ok=True)
+
+                    if os.path.exists(pdf.file.path):
+                        shutil.copy2(pdf.file.path, os.path.join(orig_dir, os.path.basename(pdf.file.name)))
+
+                    base_extracted_dir = os.path.join(settings.MEDIA_ROOT, 'extracted')
+                    extracted_count = 0
+                    if os.path.exists(base_extracted_dir):
+                        for root, _, files in os.walk(base_extracted_dir):
+                            for file in files:
+                                if file.startswith(pdf_name_without_ext) and file.endswith('.pdf'):
+                                    src_path = os.path.join(root, file)
+                                    dest_path = os.path.join(extracted_dir, file)
+                                    shutil.copy2(src_path, dest_path)
+                                    extracted_count += 1
+
+                    extracted_data = ExtractedData.objects.filter(pdf=pdf).order_by('field_key')
+                    key_data = {
+                        field: next((item.field_value for item in extracted_data if item.field_key == field), '')
+                        for field in ['PLATE_NO', 'HEAT_NO', 'TEST_CERT_NO']
+                    }
+
+                    all_data.append({
+                        'PDF File': os.path.basename(pdf.file.name),
+                        'Vendor': pdf.vendor.name,
+                        'PLATE_NO': key_data['PLATE_NO'],
+                        'HEAT_NO': key_data['HEAT_NO'],
+                        'TEST_CERT_NO': key_data['TEST_CERT_NO'],
+                        'Uploaded At': pdf.uploaded_at.strftime("%Y-%m-%d %H:%M:%S"),
+                        'Fields Found': extracted_data.count(),
+                        'Extracted Pages': extracted_count
+                    })
+
+                # Create Excel summary
+                excel_path = os.path.join(package_dir, 'extraction_summary.xlsx')
+                df = pd.DataFrame(all_data)
+                df.to_excel(excel_path, index=False)
+
+                # Create ZIP for all
+                zip_filename = f"all_extractions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+                zip_buffer = io.BytesIO()
+                with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                    for root, _, files in os.walk(package_dir):
+                        for file in files:
+                            file_path = os.path.join(root, file)
+                            arcname = os.path.relpath(file_path, package_dir)
+                            zipf.write(file_path, arcname=arcname)
+
+                    readme_content = """Extraction Summary
+This archive contains:
+1. Original PDFs and their extracted pages
+2. Excel summary of all extracted data
+Directory Structure:
+- extraction_summary.xlsx : Master Excel file with all extracted data
+- /
+- original/ : Contains the original uploaded PDF
+- extracted_pdfs/ : Contains individual extracted PDFs
+Summary:
+"""
+                    for item in all_data:
+                        readme_content += f"\nPDF: {item['PDF File']}\n"
+                        readme_content += f"- Vendor: {item['Vendor']}\n"
+                        readme_content += f"- Uploaded: {item['Uploaded At']}\n"
+                        readme_content += f"- Fields Found: {item['Fields Found']}\n"
+                        readme_content += f"- Extracted Pages: {item['Extracted Pages']}\n"
+                    readme_content += f"\nGenerated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                    zipf.writestr("README.txt", readme_content)
+
+                zip_buffer.seek(0)
+                response = FileResponse(zip_buffer, as_attachment=True, filename=zip_filename)
+                return response
+
+    except Exception as e:
+        logger.error(f"Error creating ZIP archive: {str(e)}", exc_info=True)
+        messages.error(request, "Could not create ZIP archive of PDFs and Excel data")
+        return redirect("dashboard")
+
+
+def upload_pdf(request):
+    """Handle PDF upload view"""
+    vendors = Vendor.objects.all()
+    return render(request, 'extractor/upload.html', {'vendors': vendors})
+
+
+def logout_view(request):
+    """Handle user logout"""
+    logout(request)
+    return redirect('login')
+
+
+def custom_logout(request):
+    """Custom logout view that redirects to admin login"""
+    logout(request)
+    return redirect('admin:login')
+

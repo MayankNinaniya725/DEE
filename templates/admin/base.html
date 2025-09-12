@@ -1,0 +1,31 @@
+{% extends "jazzmin/base.html" %}
+{% load i18n static %}
+
+{% block extrajs %}
+<!-- No custom scripts for logout, using Django's default behavior -->
+{% endblock %}
+
+{% block userlinks %}
+    {% if site_url %}
+        <a href="{{ site_url }}" class="dropdown-item">
+            <i class="fas fa-browser fa-fw"></i> {% trans 'View site' %}
+        </a>
+    {% endif %}
+    {% if user.is_active and user.is_staff %}
+        {% url 'django-admindocs-docroot' as docsroot %}
+        {% if docsroot %}
+            <a href="{{ docsroot }}" class="dropdown-item">
+                <i class="fas fa-book fa-fw"></i> {% trans 'Documentation' %}
+            </a>
+        {% endif %}
+    {% endif %}
+    {% if user.has_usable_password %}
+        <a href="{% url 'admin:password_change' %}" class="dropdown-item">
+            <i class="fas fa-key fa-fw"></i> {% trans 'Change password' %}
+        </a>
+    {% endif %}
+    <!-- Use our custom admin logout URL -->
+    <a href="{% url 'admin_logout' %}" class="dropdown-item">
+        <i class="fas fa-sign-out-alt fa-fw"></i> {% trans 'Log out' %}
+    </a>
+{% endblock %}
