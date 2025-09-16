@@ -158,10 +158,10 @@ def process_pdf(request):
         pdf_file = request.FILES['pdf']
 
         if not vendor_id:
-            return JsonResponse({'error': 'Vendor selection is required', 'type': 'validation'}, status=400)
+            return JsonResponse({'status': 'error', 'message': 'Vendor selection is required'}, status=400)
 
         if not pdf_file.name.lower().endswith('.pdf'):
-            return JsonResponse({'error': 'Uploaded file must be a PDF', 'type': 'validation'}, status=400)
+            return JsonResponse({'status': 'error', 'message': 'Uploaded file must be a PDF'}, status=400)
 
         try:
             vendor = Vendor.objects.get(id=vendor_id)
@@ -169,6 +169,47 @@ def process_pdf(request):
             # Calculate file hash for duplicate detection
             file_content = pdf_file.read()
             file_hash = hashlib.md5(file_content).hexdigest()
+            pdf_file.seek(0)
+
+            # Save temporary file for vendor validation
+            import tempfile
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+                temp_file.write(file_content)
+                temp_file_path = temp_file.name
+            
+            try:
+                # Perform vendor validation
+                from .utils.vendor_detection import validate_vendor_selection
+                validation_result = validate_vendor_selection(temp_file_path, vendor_id)
+                
+                # Clean up temporary file
+                os.unlink(temp_file_path)
+                
+                # If vendor validation failed, return error
+                if not validation_result['is_valid']:
+                    logger.warning(f"Vendor validation failed: {validation_result['message']}")
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'Vendor is not correct for the uploaded file.',
+                        'details': validation_result['message'],
+                        'detected_vendor': validation_result.get('detected_vendor'),
+                        'confidence': validation_result.get('confidence', 0.0)
+                    }, status=400)
+                
+                # Log successful validation
+                if validation_result.get('detected_vendor'):
+                    logger.info(f"Vendor validation successful: {validation_result['message']}")
+                
+            except Exception as validation_error:
+                # Clean up temporary file on error
+                try:
+                    os.unlink(temp_file_path)
+                except:
+                    pass
+                logger.error(f"Vendor validation error: {str(validation_error)}")
+                # Continue processing on validation error (graceful fallback)
+            
+            # Reset file pointer for further processing
             pdf_file.seek(0)
 
             existing_pdf = UploadedPDF.objects.filter(file_hash=file_hash).first()
@@ -244,7 +285,9 @@ def process_pdf(request):
             # Explicitly save session
             request.session.save()
             return JsonResponse({
+                'status': 'processing',
                 'task_id': task.id,
+                'message': 'PDF uploaded successfully. Starting extraction...',
                 'redirect': reverse('dashboard')  # This returns the correct URL path: /dashboard/
             })
 
@@ -377,6 +420,46 @@ def dashboard(request):
     
     recent_extractions = ExtractedData.objects.select_related('pdf', 'vendor').filter(extraction_filter).order_by('-created_at')[:20]
     
+    # Get unique certificates data for detailed view
+    certificates = []
+    seen_certs = set()
+    
+    for extraction in ExtractedData.objects.select_related('pdf', 'vendor').filter(extraction_filter).order_by('-created_at'):
+        # Create a unique key for each certificate based on PDF and relevant fields
+        cert_key = (
+            extraction.pdf.id,
+            extraction.field_value if extraction.field_key == 'TEST_CERT_NO' else None,
+            extraction.field_value if extraction.field_key == 'HEAT_NO' else None
+        )
+        
+        if cert_key not in seen_certs:
+            seen_certs.add(cert_key)
+            
+            # Get all fields for this certificate
+            cert_data = {
+                'Vendor': extraction.vendor.name,
+                'Created': extraction.created_at,
+                'pdf_id': extraction.pdf.id,
+                'Source PDF': extraction.pdf.file.name,
+                'Page': extraction.page_number,
+                'Filename': os.path.basename(extraction.pdf.file.name),
+                'Remarks': 'N/A'
+            }
+            
+            # Get specific fields for this certificate
+            cert_fields = ExtractedData.objects.filter(
+                pdf=extraction.pdf
+            ).order_by('field_key')
+            
+            for field in cert_fields:
+                cert_data[field.field_key] = field.field_value
+                
+            certificates.append(cert_data)
+            
+            # Limit to a reasonable number of certificates
+            if len(certificates) >= 50:  # Show last 50 certificates
+                break
+    
     # Get current timestamp for the template
     from django.utils import timezone
     current_timestamp = timezone.now()
@@ -388,6 +471,7 @@ def dashboard(request):
         'recent_extractions': recent_extractions,
         'task_id': request.session.get('last_task_id'),
         'now': current_timestamp,
+        'data': certificates  # Add certificates data to context
     }
     return render(request, 'extractor/dashboard.html', context)
 
@@ -464,40 +548,84 @@ def clear_task_id(request):
     return JsonResponse({"success": True})
 
 
+def task_progress(request, task_id):
+    """Get progress percentage for a Celery task"""
+    res = AsyncResult(task_id)
+    
+    # Calculate progress percentage based on task state
+    if res.state == "PENDING":
+        progress = 0
+        message = "Task is queued..."
+    elif res.state == "PROGRESS":
+        meta = res.info or {}
+        phase = meta.get("phase", "")
+        current = meta.get("current", 0)
+        total = meta.get("total", 4)
+        
+        # Calculate progress based on phase
+        phase_progress = {
+            "loading": 10,
+            "extracting": 40,
+            "saving": 80,
+            "finalizing": 95
+        }
+        
+        progress = phase_progress.get(phase, (current / total) * 100)
+        message = f"Processing: {phase.title()}..."
+        
+    elif res.state == "SUCCESS":
+        progress = 100
+        result_data = res.result or {}
+        status = result_data.get('status', 'completed')
+        extracted = result_data.get('extracted', 0)
+        
+        if status == 'completed':
+            message = f"✅ Extraction completed! {extracted} fields extracted."
+        elif status == 'partial_success_ocr':
+            message = f"⚠️ Partial extraction: {extracted} fields extracted."
+        elif status == 'failed_ocr':
+            message = "❌ Extraction failed - OCR fallback unsuccessful."
+        else:
+            message = "Processing completed."
+            
+    elif res.state == "FAILURE":
+        progress = 100
+        message = "❌ Extraction failed due to an error."
+    else:
+        progress = 0
+        message = f"Task state: {res.state}"
+    
+    return JsonResponse({
+        "progress": int(progress),
+        "message": message,
+        "state": res.state
+    })
+
+
 def download_excel(request):
     """Download extraction results as Excel file, for single PDF or all data"""
+    # Simplified version to debug the issue
+    from django.http import HttpResponse
+    
+    # Test basic response first
     pdf_id = request.GET.get('pdf_id')
-    try:
-        if pdf_id:
-            pdf = UploadedPDF.objects.get(id=pdf_id)
-            extracted_data = ExtractedData.objects.filter(pdf=pdf).order_by('field_key')
-            if not extracted_data.exists():
-                messages.warning(request, "No extracted data found for this PDF")
-                return redirect("dashboard")
-
-            excel_buffer = io.BytesIO()
-            create_extraction_excel(excel_buffer, pdf, extracted_data)
-            excel_buffer.seek(0)
-
-            filename = f"{os.path.splitext(pdf.file.name)[0]}_extraction.xlsx"
-            return FileResponse(excel_buffer, as_attachment=True, filename=filename)
-
-        else:
-            backups_dir = os.path.join(settings.MEDIA_ROOT, "backups")
-            master_path = os.path.join(backups_dir, "master.xlsx")
-            if not os.path.exists(master_path):
-                messages.error(request, "No extracted data available for download")
-                return redirect("dashboard")
-
-            return FileResponse(open(master_path, "rb"), as_attachment=True, filename="extracted_data.xlsx")
-
-    except UploadedPDF.DoesNotExist:
-        messages.error(request, "PDF file not found")
-        return redirect("dashboard")
-    except Exception as e:
-        logger.error(f"Error downloading Excel: {str(e)}", exc_info=True)
-        messages.error(request, "Could not generate Excel file")
-        return redirect("dashboard")
+    
+    if pdf_id:
+        return HttpResponse("PDF ID provided: " + str(pdf_id), content_type="text/plain")
+    else:
+        # Try to serve the master Excel file
+        master_path = os.path.join(settings.MEDIA_ROOT, "backups", "master.xlsx")
+        
+        if not os.path.exists(master_path):
+            return HttpResponse(f"File not found at: {master_path}", content_type="text/plain")
+        
+        try:
+            with open(master_path, "rb") as f:
+                response = FileResponse(f, as_attachment=True, filename="Master_Data.xlsx")
+                response['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                return response
+        except Exception as e:
+            return HttpResponse(f"Error serving file: {str(e)}", content_type="text/plain")
 
 
 def regenerate_excel(request):
@@ -520,9 +648,11 @@ def download_pdfs_with_excel(request):
     """
     Creates a ZIP file containing:
     - Original PDF file
-    - All extracted PDF pages
-    - Detailed Excel file with extraction data
-    - README file explaining the contents
+    - All extracted PDF pages from the server
+    - PDF-specific Excel file with filtered extraction data
+    - README file explaining the contents and file organization
+    
+    The Excel file will only contain entries related to the specific PDF for better readability.
     """
     pdf_id = request.GET.get('pdf_id')
     source_pdf = request.GET.get('source')
@@ -570,12 +700,78 @@ def download_pdfs_with_excel(request):
                                     shutil.copy2(src_path, dest_path)
                                     extracted_files.append(file)
 
-                    # Create Excel file
-                    excel_path = os.path.join(pdf_dir, 'extraction_summary.xlsx')
-                    create_extraction_excel(excel_path, pdf, extracted_data)
+                    # Create PDF-specific Excel file with filtered data
+                    excel_path = os.path.join(pdf_dir, f"{pdf_name_without_ext}_extraction.xlsx")
+                    
+                    # Get all local extracted files for this PDF
+                    local_extracted_dir = os.path.join(settings.MEDIA_ROOT, 'extracted')
+                    local_files = []
+                    if os.path.exists(local_extracted_dir):
+                        for root, _, files in os.walk(local_extracted_dir):
+                            for file in files:
+                                if file.startswith(pdf_name_without_ext):
+                                    local_files.append({
+                                        'filename': file,
+                                        'path': os.path.join(root, file)
+                                    })
+                    
+                    # Create Excel with enhanced sheet organization
+                    with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
+                        # Summary sheet with file information
+                        summary_data = {
+                            'Information': [
+                                'File Name',
+                                'Vendor',
+                                'Upload Date',
+                                'Total Fields',
+                                'Total Pages',
+                                'Status',
+                                'Original File Location',
+                                'Extracted Files Count'
+                            ],
+                            'Value': [
+                                pdf_filename,
+                                pdf.vendor.name,
+                                pdf.uploaded_at.strftime("%Y-%m-%d %H:%M:%S"),
+                                extracted_data.count(),
+                                len(set(item.page_number for item in extracted_data if item.page_number)),
+                                'Extraction Complete',
+                                f'original/{pdf_filename}',
+                                len(local_files)
+                            ]
+                        }
+                        pd.DataFrame(summary_data).to_excel(writer, sheet_name='Summary', index=False)
+                        
+                        # Extracted Data sheet with enhanced organization
+                        data_by_page = {}
+                        for item in extracted_data:
+                            page = item.page_number or 'Unknown'
+                            if page not in data_by_page:
+                                data_by_page[page] = []
+                            data_by_page[page].append({
+                                'Field Type': item.field_key,
+                                'Value': item.field_value,
+                                'Source File': f'extracted_pdfs/page_{page}.pdf' if page != 'Unknown' else 'N/A',
+                                'Extraction Time': item.created_at.strftime("%Y-%m-%d %H:%M:%S")
+                            })
+                        
+                        # Create page-wise sheets for better organization
+                        for page, data in data_by_page.items():
+                            sheet_name = f'Page {page}' if page != 'Unknown' else 'Other Fields'
+                            df = pd.DataFrame(data)
+                            df.to_excel(writer, sheet_name=sheet_name, index=False)
+                        
+                        # Files Index sheet
+                        files_data = [{
+                            'File Name': f['filename'],
+                            'Type': 'Original PDF' if f['filename'] == pdf_filename else 'Extracted Page',
+                            'Location in Package': f"{'original' if f['filename'] == pdf_filename else 'extracted_pdfs'}/{f['filename']}"
+                        } for f in local_files]
+                        if files_data:
+                            pd.DataFrame(files_data).to_excel(writer, sheet_name='Files Index', index=False)
 
-                    # Create ZIP file
-                    zip_filename = f"{pdf_name_without_ext}_extraction_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+                    # Create ZIP file with descriptive name
+                    zip_filename = f"{pdf_name_without_ext}_complete_package_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
                     zip_buffer = io.BytesIO()
                     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
                         for root, _, files in os.walk(pdf_dir):
@@ -584,20 +780,52 @@ def download_pdfs_with_excel(request):
                                 arcname = os.path.relpath(file_path, pdf_dir)
                                 zipf.write(file_path, arcname=arcname)
 
-                        # Add README
-                        readme_content = f"""Extraction Summary
-PDF: {pdf_filename}
+                        # Add README with enhanced organization details
+                        readme_content = f"""Extraction Package for Certificate Analysis
+================================================
+
+PDF Information:
+---------------
+File Name: {pdf_filename}
 Vendor: {pdf.vendor.name}
-Uploaded: {pdf.uploaded_at.strftime('%Y-%m-%d %H:%M:%S')}
-Extracted Fields: {extracted_data.count()}
-Directory Structure:
-- original/ : Original uploaded PDF
-- extracted_pdfs/ : Individual extracted pages
-- extraction_summary.xlsx : Detailed Excel file with:
-  * Summary : Overview and statistics
-  * Extracted Data : All extracted fields
-  * Key Fields : Certificate data (PLATE_NO, HEAT_NO, etc.)
-  * Page Summary : Page-by-page breakdown
+Upload Date: {pdf.uploaded_at.strftime('%Y-%m-%d %H:%M:%S')}
+Total Fields Extracted: {extracted_data.count()}
+Total Pages: {len(set(item.page_number for item in extracted_data if item.page_number))}
+
+Package Contents:
+---------------
+1. Original PDF:
+   - Located in: original/{pdf_filename}
+   
+2. Extracted Pages:
+   - Located in: extracted_pdfs/
+   - Contains individual PDF pages extracted from the original
+   - Files are named based on their page numbers
+
+3. Excel Analysis File ({pdf_name_without_ext}_extraction.xlsx):
+   - Summary Sheet: Overview and file information
+   - Page-specific Sheets: Detailed extraction data for each page
+   - Files Index: Complete list of all files in this package
+   
+How to Use This Package:
+----------------------
+1. The Excel file is organized by pages for easier analysis
+2. Each extracted page is saved separately in the extracted_pdfs folder
+3. Cross-reference the Files Index sheet to locate specific files
+4. Use the Summary sheet for a quick overview
+
+Key Fields Found:
+--------------
+{chr(10).join(f"- {item.field_key}: {item.field_value}" for item in extracted_data if item.field_key in ['PLATE_NO', 'HEAT_NO', 'TEST_CERT_NO'])}
+
+File Organization:
+----------------
+/original
+    - Contains the original uploaded PDF
+/extracted_pdfs
+    - Contains all extracted pages and processed PDFs
+{pdf_name_without_ext}_extraction.xlsx
+    - Complete analysis and data extraction results
 Extracted Files:
 {chr(10).join(f"- {file}" for file in extracted_files)}
 """

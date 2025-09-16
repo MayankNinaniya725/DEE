@@ -134,7 +134,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'extractor.middleware.NoCacheMiddleware',  # No-cache middleware
-    'extractor.middleware.BrokenLinkMiddleware',  # Broken link handling middleware
+    'extractor.middleware.BrokenLinkMiddleware',  # Broken link handling middleware - FIXED
 ]
 
 ROOT_URLCONF = 'extractor_project.urls'

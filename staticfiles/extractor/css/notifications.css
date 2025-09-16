@@ -1,0 +1,76 @@
+/* Broken links styling */
+.broken-link {
+    color: #dc3545 !important;
+    text-decoration: line-through;
+    cursor: not-allowed;
+    opacity: 0.7;
+    position: relative;
+}
+
+.broken-link:hover {
+    color: #dc3545 !important;
+    text-decoration: line-through !important;
+}
+
+.broken-link::before {
+    content: "⚠";
+    margin-right: 5px;
+    font-size: 14px;
+}
+
+/* Enhanced notification animations */
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+/* SweetAlert2 customizations */
+.swal2-popup {
+    font-size: 1rem;
+    border-radius: 10px;
+}
+
+.swal2-title {
+    font-size: 1.5rem;
+}
+
+.swal2-content {
+    font-size: 1rem;
+}
+
+.swal2-styled.swal2-confirm {
+    background-color: #4e73df;
+    font-weight: 600;
+    border-radius: 5px;
+}
+
+.swal2-styled.swal2-cancel {
+    background-color: #6c757d;
+    border-radius: 5px;
+}

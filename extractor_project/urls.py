@@ -17,11 +17,8 @@ urlpatterns = [
     # Admin interface
     path('admin/', admin.site.urls),
     
-    # Include the app URLs
+    # Include the app URLs - this should handle all paths including downloads  
     path('', include('extractor.urls')),
-    
-    # Redirect root to dashboard
-    path('', RedirectView.as_view(url='/dashboard/'), name='root'),
 ]
 
 # Serve static and media files in development

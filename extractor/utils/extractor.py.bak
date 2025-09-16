@@ -1,0 +1,894 @@
+# import os
+# import re
+# import hashlib
+# import logging
+# import pandas as pd
+# import pdfplumber
+# from PyPDF2 import PdfReader, PdfWriter
+# from datetime import datetime
+# from .ocr_helper import extract_text_with_ocr
+
+# # Setup directories
+# LOG_FILE = "logs/master_log.xlsx"
+# ERROR_LOG_FILE = "logs/errors.log"
+# os.makedirs("logs", exist_ok=True)
+
+# # Get logger
+# logger = logging.getLogger("extractor.utils")
+
+# def generate_hash(entry, vendor_id):
+#     """Generate MD5 hash for duplicate detection."""
+#     key = f"{vendor_id}|" + "|".join(str(entry.get(k, "")) for k in ["PLATE_NO", "HEAT_NO", "TEST_CERT_NO"])
+#     return hashlib.md5(key.encode("utf-8")).hexdigest()
+
+# def load_master_log():
+#     """Load master log Excel file."""
+#     if not os.path.exists(LOG_FILE):
+#         return pd.DataFrame(columns=[
+#             "Sr No","Vendor", "PLATE_NO", "HEAT_NO", "TEST_CERT_NO",
+#             "Filename", "Page", "Source PDF", "Created", "Hash","Remarks"
+#         ])
+#     return pd.read_excel(LOG_FILE)
+
+# def save_to_log(entry):
+#     """Save entry into Excel log with Sr No and duplicate remarks."""
+#     df = load_master_log()
+
+#     # Assign Sr No
+#     entry["Sr No"] = (df["Sr No"].max() + 1) if not df.empty else 1
+
+#     # Check for duplicate
+#     if entry["Hash"] in df["Hash"].values:
+#         # Find the original Sr No of the duplicate
+#         original_sr_no = df.loc[df["Hash"] == entry["Hash"], "Sr No"].iloc[0]
+#         entry["Remarks"] = f"DUPLICATE of Sr No {original_sr_no}"
+#     else:
+#         entry["Remarks"] = ""
+
+#     df = pd.concat([df, pd.DataFrame([entry])], ignore_index=True)
+#     try:
+#         df.to_excel(LOG_FILE, index=False)
+#     except PermissionError:
+#         print("❌ Please close 'logs/master_log.xlsx' and run again.")
+
+
+
+# def extract_entries_from_text(text, vendor_config):
+#     """
+#     Extract multiple entries dynamically using vendor-specific fields,
+#     then normalize them into (PLATE_NO, HEAT_NO, TEST_CERT_NO).
+#     """
+#     fields = vendor_config["fields"]
+
+#     # Run regex matches for all defined fields
+#     matches = {}
+#     for key, pattern in fields.items():
+#         matches[key] = re.findall(pattern, text, re.IGNORECASE) if text else []
+
+#     # Normalization map
+#     normalization_map = {
+#         "PLATE_NO": "PLATE_NO",
+#         "PART_NO": "PLATE_NO",
+#         "PRODUCT_NO": "PLATE_NO",
+
+#         "HEAT_NO": "HEAT_NO",
+
+#         "TEST_CERT_NO": "TEST_CERT_NO",
+#         "CERTIFICATE_NO": "TEST_CERT_NO",
+#         "REPORT_NO": "TEST_CERT_NO"
+#     }
+
+#     # Align multiple entries
+#     plate_vals = matches.get("PLATE_NO", []) + matches.get("PART_NO", []) + matches.get("PRODUCT_NO", [])
+#     heat_vals = matches.get("HEAT_NO", [])
+#     cert_vals = (
+#         matches.get("TEST_CERT_NO", [])
+#         + matches.get("CERTIFICATE_NO", [])
+#         + matches.get("REPORT_NO", [])
+#     )
+
+#     # Usually one cert per page → take first
+#     cert_val = cert_vals[0] if cert_vals else None
+
+#     entries = []
+#     if cert_val:
+#         max_len = max(len(plate_vals), len(heat_vals))
+#         for i in range(max_len):
+#             plate = plate_vals[i] if i < len(plate_vals) else None
+#             heat = heat_vals[i] if i < len(heat_vals) else None
+
+#             if (plate or heat) and cert_val:
+#                 entries.append({
+#                     "PLATE_NO": plate.strip() if plate else "NA",
+#                     "HEAT_NO": heat.strip() if heat else "NA",
+#                     "TEST_CERT_NO": cert_val.strip()
+#                 })
+
+#     # Fallback debug entry
+#     if not entries:
+#         entries = [{
+#             "PLATE_NO": "DEBUG_PLATE",
+#             "HEAT_NO": "DEBUG_HEAT",
+#             "TEST_CERT_NO": "DEBUG_CERT"
+#         }]
+
+#     return entries
+
+# def extract_multi_entries(pdf_path, vendor_config, output_folder):
+#     """Main extraction pipeline with safe filename handling."""
+#     logger = logging.getLogger(__name__)
+#     logger.info("=== Starting PDF Extraction ===")
+#     logger.info(f"PDF Path: {pdf_path}")
+#     logger.info(f"Vendor Config: {vendor_config}")
+#     logger.info(f"Output Folder: {output_folder}")
+    
+#     results = []
+#     vendor_id = vendor_config.get("vendor_id")
+#     vendor_name = vendor_config.get("vendor_name")
+    
+#     if not vendor_id or not vendor_name:
+#         logger.error("Missing vendor_id or vendor_name in config")
+#         raise ValueError("Invalid vendor configuration: missing vendor_id or vendor_name")
+
+#     vendor_output_dir = os.path.join(output_folder, vendor_name.replace(" ", "_"))
+#     os.makedirs(vendor_output_dir, exist_ok=True)
+
+#     reader = PdfReader(pdf_path)
+
+#     with pdfplumber.open(pdf_path) as pdf:
+#         for idx, page in enumerate(pdf.pages):
+#             try:
+#                 # Extract text (OCR fallback)
+#                 text = page.extract_text()
+#                 if not text or len(text.strip()) < 50:
+#                     text = extract_text_with_ocr(pdf_path, idx)
+
+#                 # Extract fields using vendor patterns (with debug fallback)
+#                 entries = extract_entries_from_text(text, vendor_config)
+
+#                 for entry in entries:
+#                     entry["Hash"] = generate_hash(entry, vendor_id)
+#                     if entry["Hash"] in load_master_log()["Hash"].values:
+#                         print(f"[SKIPPED] Duplicate: {entry}")
+
+#                     # Build filename dynamically & sanitize it
+#                     filename_parts = [
+#                         entry.get(k, "NA")
+#                         .replace("/", "-")
+#                         .replace("\\", "-")
+#                         .replace("\n", " ")
+#                         .replace("\r", " ")
+#                         .strip()
+#                         for k in vendor_config["fields"].keys()
+#                     ]
+#                     raw_filename = "_".join(filename_parts)
+#                     safe_filename = re.sub(r'[<>:"/\\|?*\n\r\t]+', " ", raw_filename).strip() + ".pdf"
+
+#                     # Save extracted PDF page
+#                     writer = PdfWriter()
+#                     writer.add_page(reader.pages[idx])
+#                     file_path = os.path.join(vendor_output_dir, safe_filename)
+#                     with open(file_path, "wb") as f:
+#                         writer.write(f)
+
+#                     # Save log entry
+#                     log_entry = {
+#                         "Vendor": vendor_name,
+#                         "Filename": safe_filename,
+#                         "Page": idx + 1,
+#                         "Source PDF": os.path.basename(pdf_path),
+#                         "Created": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+#                         "Hash": entry["Hash"],
+#                         **entry
+#                     }
+#                     save_to_log(log_entry)
+#                     results.append(log_entry)
+#                     print(f"[✔] Saved: {safe_filename}")
+
+#             except Exception as e:
+#                 logging.error(f"Error processing page {idx+1} in {pdf_path}: {e}")
+#                 print(f"[!] Error processing page {idx+1}: {e}")
+
+#     return results
+
+# def extract_pdf_fields(pdf_path, vendor_config, output_folder="extracted_output"):
+#     """
+#     Wrapper for views.py: extracts entries from a PDF using vendor config
+#     and returns the results.
+#     """
+#     return extract_multi_entries(pdf_path, vendor_config, output_folder)
+
+
+
+
+import os
+import re
+import hashlib
+import logging
+import pandas as pd
+import pdfplumber
+from PyPDF2 import PdfReader, PdfWriter
+from datetime import datetime
+from .ocr_helper import extract_text_with_ocr
+
+# Try to import advanced PDF processing libraries for multilingual support
+try:
+    import camelot
+    HAS_CAMELOT = True
+except ImportError:
+    HAS_CAMELOT = False
+
+try:
+    import tabula
+    HAS_TABULA = True
+except ImportError:
+    HAS_TABULA = False
+
+# Setup directories
+LOG_FILE = "logs/master_log.xlsx"
+ERROR_LOG_FILE = "logs/errors.log"
+os.makedirs("logs", exist_ok=True)
+
+# Get logger
+logger = logging.getLogger("extractor.utils")
+
+# Setup logging
+logging.basicConfig(
+    filename=ERROR_LOG_FILE,
+    level=logging.ERROR,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+def detect_multilingual_content(text):
+    """
+    Detect if the text contains multilingual content (Chinese, Japanese, Korean mixed with English).
+    Returns True if multilingual content is detected.
+    """
+    if not text:
+        return False
+    
+    # Check for CJK characters (Chinese, Japanese, Korean)
+    cjk_pattern = re.compile(r'[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]')
+    has_cjk = bool(cjk_pattern.search(text))
+    
+    # Check for English letters
+    english_pattern = re.compile(r'[a-zA-Z]')
+    has_english = bool(english_pattern.search(text))
+    
+    # Check for common fragmentation indicators (excessive whitespace, newlines)
+    fragmentation_indicators = [
+        r'\n\s*\n\s*\n',  # Multiple consecutive newlines
+        r'[A-Za-z]\s+[A-Za-z]\s+[A-Za-z]',  # Spaced out words
+        r'\w\s+[:：]\s+',  # Spaced out colons
+        r'(Part|Heat|Report|Certificate|Test)\s*\n\s*No',  # Split "Part No" across lines
+    ]
+    
+    has_fragmentation = any(re.search(pattern, text, re.IGNORECASE) for pattern in fragmentation_indicators)
+    
+    return has_cjk and has_english, has_fragmentation
+
+def create_multilingual_patterns(base_pattern, field_name):
+    """
+    Create enhanced regex patterns for multilingual content with fragmentation tolerance.
+    
+    Args:
+        base_pattern: Original regex pattern
+        field_name: Field name (PLATE_NO, HEAT_NO, TEST_CERT_NO)
+    
+    Returns:
+        List of enhanced patterns to try
+    """
+    patterns = [base_pattern]  # Always include original pattern first
+    
+    # Common multilingual labels for each field type
+    multilingual_labels = {
+        'PLATE_NO': [
+            r'Part\s*No\.?',
+            r'Plate\s*No\.?',
+            r'Product\s*No\.?',
+            r'钢板号',  # Chinese for "Plate Number"
+            r'产品号',  # Chinese for "Product Number"
+            r'零件号',  # Chinese for "Part Number"
+        ],
+        'HEAT_NO': [
+            r'Heat\s*No\.?',
+            r'Lot\s*No\.?',
+            r'Batch\s*No\.?',
+            r'炉号',   # Chinese for "Heat Number"
+            r'批号',   # Chinese for "Batch Number"
+        ],
+        'TEST_CERT_NO': [
+            r'Test\s*Certificate\s*No\.?',
+            r'Report\s*No\.?',
+            r'Certificate\s*No\.?',
+            r'Cert\.?\s*No\.?',
+            r'检测证书号',  # Chinese for "Test Certificate Number"
+            r'报告号',     # Chinese for "Report Number"
+        ]
+    }
+    
+    # Create enhanced patterns with multilingual support
+    if field_name in multilingual_labels:
+        for label in multilingual_labels[field_name]:
+            # Pattern with flexible whitespace and line breaks
+            stripped_pattern = base_pattern.strip(r'\b')
+            enhanced_pattern = f'{label}\\s*[:：]?\\s*\\n?\\s*({stripped_pattern})'
+            patterns.append(enhanced_pattern)
+            
+            # More flexible pattern allowing fragmentation
+            fragmented_pattern = f'{label}\\s*[:：]?\\s*\\n?\\s*(.{{0,50}}?)\\s*({stripped_pattern})'
+            patterns.append(fragmented_pattern)
+    
+    return patterns
+
+def extract_with_line_by_line_scan(text, vendor_config):
+    """
+    Enhanced extraction using line-by-line scanning with multilingual support.
+    This method is more tolerant of fragmentation and OCR-induced errors.
+    """
+    entries = []
+    fields = vendor_config["fields"]
+    # Extract patterns from field configurations
+    patterns = {
+        field_name: field_info["pattern"] if isinstance(field_info, dict) else field_info
+        for field_name, field_info in fields.items()
+    }
+    
+    # Split text into lines for line-by-line processing
+    lines = text.split('\n')
+    
+    # Create enhanced patterns for multilingual content
+    enhanced_patterns = {}
+    for field_name, pattern in fields.items():
+        enhanced_patterns[field_name] = create_multilingual_patterns(pattern, field_name)
+    
+    # Track potential values found
+    potential_values = {
+        'PLATE_NO': [],
+        'HEAT_NO': [],
+        'TEST_CERT_NO': []
+    }
+    
+    # Scan each line with enhanced patterns
+    for line_idx, line in enumerate(lines):
+        # Clean the line but preserve structure
+        clean_line = re.sub(r'\s+', ' ', line.strip())
+        if not clean_line:
+            continue
+            
+        # Look for field values using enhanced patterns
+        for field_name, patterns in enhanced_patterns.items():
+            normalized_field = field_name
+            if field_name in ['PART_NO', 'PRODUCT_NO']:
+                normalized_field = 'PLATE_NO'
+            elif field_name in ['CERTIFICATE_NO', 'REPORT_NO']:
+                normalized_field = 'TEST_CERT_NO'
+                
+            for pattern in patterns:
+                try:
+                    # Use DOTALL and MULTILINE flags for maximum flexibility
+                    matches = re.finditer(pattern, clean_line, re.IGNORECASE | re.DOTALL | re.MULTILINE)
+                    
+                    for match in matches:
+                        # Extract the actual value (last group if multiple groups)
+                        value = match.group(match.lastindex) if match.lastindex else match.group(0)
+                        value = value.strip()
+                        
+                        if value and len(value) > 2:  # Minimum reasonable length
+                            potential_values[normalized_field].append({
+                                'value': value,
+                                'line': line_idx,
+                                'confidence': len(value)  # Longer values typically more reliable
+                            })
+                            
+                except re.error as e:
+                    logger.warning(f"Regex error with pattern {pattern}: {e}")
+                    continue
+    
+    # Also check context around potential values (multi-line matching)
+    for i in range(len(lines) - 2):
+        context_block = ' '.join(lines[i:i+3])  # 3-line context
+        context_block = re.sub(r'\s+', ' ', context_block)
+        
+        for field_name, patterns in enhanced_patterns.items():
+            normalized_field = field_name
+            if field_name in ['PART_NO', 'PRODUCT_NO']:
+                normalized_field = 'PLATE_NO'
+            elif field_name in ['CERTIFICATE_NO', 'REPORT_NO']:
+                normalized_field = 'TEST_CERT_NO'
+                
+            for pattern in patterns:
+                try:
+                    matches = re.finditer(pattern, context_block, re.IGNORECASE | re.DOTALL | re.MULTILINE)
+                    
+                    for match in matches:
+                        value = match.group(match.lastindex) if match.lastindex else match.group(0)
+                        value = value.strip()
+                        
+                        if value and len(value) > 2:
+                            # Check if we already have this value
+                            existing_values = [pv['value'] for pv in potential_values[normalized_field]]
+                            if value not in existing_values:
+                                potential_values[normalized_field].append({
+                                    'value': value,
+                                    'line': i,
+                                    'confidence': len(value) + 1  # Bonus for context matching
+                                })
+                                
+                except re.error:
+                    continue
+    
+    # Select best values based on confidence and create entries
+    selected_values = {}
+    for field_name, candidates in potential_values.items():
+        if candidates:
+            # Sort by confidence (descending) and take the best
+            candidates.sort(key=lambda x: x['confidence'], reverse=True)
+            selected_values[field_name] = candidates[0]['value']
+    
+    # Create entries if we have at least one value
+    if selected_values:
+        entry = {
+            'PLATE_NO': selected_values.get('PLATE_NO', 'NA'),
+            'HEAT_NO': selected_values.get('HEAT_NO', 'NA'),
+            'TEST_CERT_NO': selected_values.get('TEST_CERT_NO', 'NA')
+        }
+        
+        # Only add entry if we have at least 2 non-NA values or a certificate number
+        non_na_count = sum(1 for v in entry.values() if v != 'NA')
+        if non_na_count >= 2 or entry['TEST_CERT_NO'] != 'NA':
+            entries.append(entry)
+    
+    return entries
+
+def extract_with_advanced_table_detection(pdf_path, page_num, vendor_config):
+    """
+    Use advanced table detection libraries (Camelot/Tabula) when available
+    for better multilingual table extraction.
+    """
+    entries = []
+    
+    # Try Camelot first (generally more accurate for PDF tables)
+    if HAS_CAMELOT:
+        try:
+            tables = camelot.read_pdf(pdf_path, pages=str(page_num + 1), flavor='lattice')
+            if not tables:
+                tables = camelot.read_pdf(pdf_path, pages=str(page_num + 1), flavor='stream')
+                
+            for table in tables:
+                df = table.df
+                entries.extend(extract_from_dataframe(df, vendor_config))
+                
+            if entries:
+                return entries
+                
+        except Exception as e:
+            logger.debug(f"Camelot extraction failed: {e}")
+    
+    # Try Tabula as fallback
+    if HAS_TABULA:
+        try:
+            tables = tabula.read_pdf(pdf_path, pages=page_num + 1, multiple_tables=True)
+            for table in tables:
+                entries.extend(extract_from_dataframe(table, vendor_config))
+                
+            if entries:
+                return entries
+                
+        except Exception as e:
+            logger.debug(f"Tabula extraction failed: {e}")
+    
+    return entries
+
+def extract_from_dataframe(df, vendor_config):
+    """
+    Extract field values from a pandas DataFrame (from table detection).
+    """
+    entries = []
+    fields = vendor_config["fields"]
+    
+    # Convert all cells to string and search for patterns
+    for _, row in df.iterrows():
+        row_values = {
+            'PLATE_NO': None,
+            'HEAT_NO': None,
+            'TEST_CERT_NO': None
+        }
+        
+        for cell in row:
+            if pd.isna(cell) or not str(cell).strip():
+                continue
+                
+            cell_str = str(cell).strip()
+            
+            # Check each field pattern
+            for field_name, field_info in fields.items():
+                normalized_field = field_name
+                if field_name in ['PART_NO', 'PRODUCT_NO']:
+                    normalized_field = 'PLATE_NO'
+                elif field_name in ['CERTIFICATE_NO', 'REPORT_NO']:
+                    normalized_field = 'TEST_CERT_NO'
+                
+                pattern = field_info["pattern"] if isinstance(field_info, dict) else field_info
+                match = re.search(pattern, cell_str, re.IGNORECASE)
+                if match and not row_values[normalized_field]:
+                    row_values[normalized_field] = match.group(1) if match.lastindex else match.group(0)
+        
+        # Add entry if we found at least one field
+        if any(row_values.values()):
+            entry = {
+                'PLATE_NO': row_values['PLATE_NO'] or 'NA',
+                'HEAT_NO': row_values['HEAT_NO'] or 'NA',
+                'TEST_CERT_NO': row_values['TEST_CERT_NO'] or 'NA'
+            }
+            entries.append(entry)
+    
+    return entries
+
+def generate_hash(entry, vendor_id):
+    """Generate MD5 hash for duplicate detection."""
+    # Use all fields present in entry for hash
+    key = f"{vendor_id}|" + "|".join(str(entry.get(k, "")) for k in ["PLATE_NO", "HEAT_NO", "TEST_CERT_NO"])
+    return hashlib.md5(key.encode("utf-8")).hexdigest()
+
+def load_master_log():
+    """Load master log Excel file."""
+    if not os.path.exists(LOG_FILE):
+        return pd.DataFrame(columns=[
+            "Sr No", "Vendor", "PLATE_NO", "HEAT_NO", "TEST_CERT_NO",
+            "Filename", "Page", "Source PDF", "Created", "Hash", "Remarks"
+        ])
+    return pd.read_excel(LOG_FILE)
+
+def save_to_log(entry):
+    """Save entry into Excel log with Sr No and duplicate remarks."""
+    df = load_master_log()
+    # Assign Sr No
+    entry["Sr No"] = (df["Sr No"].max() + 1) if not df.empty else 1
+    # Check for duplicate
+    if entry["Hash"] in df["Hash"].values:
+        # Find the original Sr No of the duplicate
+        original_sr_no = df.loc[df["Hash"] == entry["Hash"], "Sr No"].iloc[0]
+        entry["Remarks"] = f"DUPLICATE of Sr No {original_sr_no}"
+    else:
+        entry["Remarks"] = ""
+    df = pd.concat([df, pd.DataFrame([entry])], ignore_index=True)
+    try:
+        df.to_excel(LOG_FILE, index=False)
+    except PermissionError:
+        print("❌ Please close 'logs/master_log.xlsx' and run again.")
+
+def get_pattern_from_field(field_info):
+    """Extract pattern from field configuration."""
+    if isinstance(field_info, str):
+        return field_info
+    elif isinstance(field_info, dict):
+        return field_info.get("pattern", "")
+    return ""
+
+def extract_entries_from_text(text, vendor_config, page=None, pdf_path=None, page_num=None):
+    """
+    Enhanced extractor that:
+    - Tries to extract structured table rows if `page` object is provided (pdfplumber page),
+    - Falls back to regex on raw text if tables are missing,
+    - Uses multilingual detection and enhanced extraction for complex PDFs,
+    - Extracts Plate No, Heat No, and Test Certificate No entries.
+    """
+    vendor_id = vendor_config["vendor_id"]
+    fields = vendor_config["fields"]
+    entries = []
+    
+    # Extract patterns from field configurations
+    patterns = {
+        field_name: get_pattern_from_field(field_info)
+        for field_name, field_info in fields.items()
+    }
+    
+    # Extract patterns from field configurations
+    patterns = {
+        field_name: field_info["pattern"] if isinstance(field_info, dict) else field_info
+        for field_name, field_info in fields.items()
+    }
+
+    # Detect if this is multilingual or fragmented content
+    is_multilingual, has_fragmentation = detect_multilingual_content(text)
+    
+    logger.info(f"Content analysis - Multilingual: {is_multilingual}, Fragmented: {has_fragmentation}")
+
+    # If multilingual or fragmented content detected, use enhanced extraction
+    if is_multilingual or has_fragmentation:
+        logger.info("Using enhanced multilingual extraction")
+        
+        # Try advanced table detection first if available
+        if pdf_path and page_num is not None:
+            table_entries = extract_with_advanced_table_detection(pdf_path, page_num, vendor_config)
+            if table_entries:
+                logger.info(f"Found {len(table_entries)} entries using advanced table detection")
+                return table_entries
+        
+        # Use line-by-line scanning for fragmented content
+        enhanced_entries = extract_with_line_by_line_scan(text, vendor_config)
+        if enhanced_entries:
+            logger.info(f"Found {len(enhanced_entries)} entries using line-by-line scanning")
+            entries.extend(enhanced_entries)
+
+    # Vendor-specific extraction logic for POSCO (preserved existing logic)
+    if vendor_id == "posco" and page:
+        tables = page.extract_tables()
+        cert_no_match = re.search(fields["TEST_CERT_NO"], text, re.IGNORECASE)
+        cert_no = cert_no_match.group(1) if cert_no_match and cert_no_match.lastindex else (cert_no_match.group(0) if cert_no_match else None)
+        
+        for table in tables:
+            for row in table:
+                plate_no, heat_no = None, None
+                for cell in row:
+                    if cell:
+                        # Use search (not fullmatch) to handle partial matches or noisy data
+                        if re.search(fields["PLATE_NO"], cell):
+                            plate_no = cell.strip()
+                        if re.search(fields["HEAT_NO"], cell):
+                            heat_no = cell.strip()
+                if plate_no and heat_no:
+                    entries.append({
+                        "PLATE_NO": plate_no.strip() if isinstance(plate_no, str) else str(plate_no),
+                        "HEAT_NO": heat_no.strip() if isinstance(heat_no, str) else str(heat_no),
+                        "TEST_CERT_NO": cert_no.strip() if isinstance(cert_no, str) else str(cert_no) if cert_no else "NA"
+                    })
+        if entries:
+            return entries
+
+    # Default extraction fallback logic for JSW, CITIC and others (preserved existing logic)
+    if not entries:  # Only run if no entries found yet
+        test_cert_pattern = re.compile(fields["TEST_CERT_NO"], re.IGNORECASE)
+        cert_matches = list(test_cert_pattern.finditer(text))
+
+        if cert_matches:
+            for idx, cert_match in enumerate(cert_matches):
+                tc_no = cert_match.group(1) if cert_match.lastindex else cert_match.group(0)
+                start = cert_match.end()
+                end = cert_matches[idx+1].start() if idx+1 < len(cert_matches) else len(text)
+                block_text = text[start:end]
+
+                # Normalize whitespace for robust matching
+                normalized_block = re.sub(r'\s+', ' ', block_text)
+                combined_pattern = re.compile(
+                    f"({fields['PLATE_NO']}).*?({fields['HEAT_NO']})",
+                    re.IGNORECASE
+                )
+                for match in combined_pattern.finditer(normalized_block):
+                    entries.append({
+                        "PLATE_NO": match.group(1),
+                        "HEAT_NO": match.group(2),
+                        "TEST_CERT_NO": tc_no
+                    })
+        else:
+            # Fallback to individual field extraction
+            plate_pattern = re.compile(fields["PLATE_NO"], re.IGNORECASE)
+            heat_pattern = re.compile(fields["HEAT_NO"], re.IGNORECASE)
+            plates = plate_pattern.findall(text)
+            heats = heat_pattern.findall(text)
+            
+            # Try to find certificate numbers with enhanced patterns if multilingual
+            cert_candidates = []
+            if is_multilingual or has_fragmentation:
+                cert_patterns = create_multilingual_patterns(fields["TEST_CERT_NO"], "TEST_CERT_NO")
+                for pattern in cert_patterns:
+                    try:
+                        matches = re.findall(pattern, text, re.IGNORECASE | re.DOTALL | re.MULTILINE)
+                        cert_candidates.extend(matches)
+                    except re.error:
+                        continue
+            else:
+                cert_candidates = re.findall(fields["TEST_CERT_NO"], text, re.IGNORECASE)
+            
+            # Pair up the values
+            max_entries = max(len(plates), len(heats), len(cert_candidates))
+            for i in range(max_entries):
+                p = plates[i] if i < len(plates) else None
+                h = heats[i] if i < len(heats) else None
+                c = cert_candidates[i] if i < len(cert_candidates) else None
+                
+                # Extract actual value if it's a tuple (from group matching)
+                if isinstance(c, tuple):
+                    c = next((item for item in c if item), None)
+                
+                if p or h or c:  # At least one value must be present
+                    entries.append({
+                        "PLATE_NO": p or "NA",
+                        "HEAT_NO": h or "NA", 
+                        "TEST_CERT_NO": c or "NA"
+                    })
+
+    return entries
+
+def extract_entries_from_page(page, vendor_config, pdf_path=None, page_num=None):
+    """
+    Extract entries from a page using configured extraction mode.
+    """
+    entries = []
+    
+    # Try table extraction first if enabled
+    if vendor_config.get("extraction_mode") == "table":
+        entries = extract_tables_from_page(page, vendor_config)
+        if entries:
+            return entries
+    
+    # Fall back to text extraction
+    text = extract_text_from_page(page)
+    if not text or len(text.strip()) < 50:  # Try OCR if text extraction fails
+        if pdf_path and page_num is not None:
+            text = extract_text_with_ocr(pdf_path, page_num)
+    
+    if text:
+        fields = vendor_config["fields"]
+        matches = {}
+        
+        # Extract values using patterns
+        for field_name, field_info in fields.items():
+            pattern = field_info["pattern"] if isinstance(field_info, dict) else field_info
+            matches[field_name] = re.findall(pattern, text, re.IGNORECASE)
+        
+        # Normalize and combine matches
+        plate_vals = []
+        heat_vals = []
+        cert_vals = []
+        
+        for field_name, values in matches.items():
+            if field_name in ["PLATE_NO", "PART_NO", "PRODUCT_NO"]:
+                plate_vals.extend(values)
+            elif field_name == "HEAT_NO":
+                heat_vals.extend(values)
+            elif field_name in ["TEST_CERT_NO", "CERTIFICATE_NO", "REPORT_NO"]:
+                cert_vals.extend(values)
+        
+        # Create entries from matched values
+        if vendor_config.get("multi_match", False):
+            # Create entries for all combinations
+            for cert_val in cert_vals or ["NA"]:
+                max_len = max(len(plate_vals), len(heat_vals))
+                for i in range(max_len):
+                    plate = plate_vals[i] if i < len(plate_vals) else "NA"
+                    heat = heat_vals[i] if i < len(heat_vals) else "NA"
+                    
+                    if plate != "NA" or heat != "NA":
+                        entries.append({
+                            "PLATE_NO": str(plate).strip(),
+                            "HEAT_NO": str(heat).strip(),
+                            "TEST_CERT_NO": str(cert_val).strip()
+                        })
+        else:
+            # Create single entry with first matches
+            if plate_vals or heat_vals or cert_vals:
+                entries.append({
+                    "PLATE_NO": str(plate_vals[0]).strip() if plate_vals else "NA",
+                    "HEAT_NO": str(heat_vals[0]).strip() if heat_vals else "NA",
+                    "TEST_CERT_NO": str(cert_vals[0]).strip() if cert_vals else "NA"
+                })
+    
+    return entries
+
+def extract_multi_entries(pdf_path, vendor_config, output_folder):
+    """Main extraction pipeline with safe filename handling and OCR fallback tracking."""
+    logger = logging.getLogger(__name__)
+    logger.info("=== Starting PDF Extraction ===")
+    logger.info(f"PDF Path: {pdf_path}")
+    logger.info(f"Vendor Config: {vendor_config}")
+    logger.info(f"Output Folder: {output_folder}")
+    
+    results = []
+    ocr_fallback_pages = []  # Track pages that needed OCR fallback
+    failed_pages = []       # Track pages that failed completely
+    
+    vendor_id = vendor_config.get("vendor_id")
+    vendor_name = vendor_config.get("vendor_name")
+    if not vendor_id or not vendor_name:
+        logger.error("Missing vendor_id or vendor_name in config")
+        raise ValueError("Invalid vendor configuration: missing vendor_id or vendor_name")
+    
+    vendor_output_dir = os.path.join(output_folder, vendor_name.replace(" ", "_"))
+    os.makedirs(vendor_output_dir, exist_ok=True)
+    
+    reader = PdfReader(pdf_path)
+    with pdfplumber.open(pdf_path) as pdf:
+        total_pages = len(pdf.pages)
+        for idx, page in enumerate(pdf.pages):
+            try:
+                # Extract text with potential OCR fallback
+                text = page.extract_text()
+                used_ocr = False
+                
+                if not text or len(text.strip()) < 50:
+                    logger.info(f"Using OCR fallback for page {idx + 1} due to insufficient text")
+                    text = extract_text_with_ocr(pdf_path, idx)
+                    used_ocr = True
+                    ocr_fallback_pages.append(idx + 1)  # Store 1-based page number
+                
+                # Extract fields using enhanced vendor patterns
+                entries = extract_entries_from_text(text, vendor_config, page=page, pdf_path=pdf_path, page_num=idx)
+                
+                # If no entries found even with OCR, mark as needing better OCR
+                if not entries and used_ocr:
+                    logger.warning(f"OCR fallback didn't yield results on page {idx + 1}")
+                    continue
+                
+                # If no entries found with regular extraction, try OCR as a fallback
+                if not entries and not used_ocr:
+                    logger.info(f"No entries found with standard extraction, trying OCR for page {idx + 1}")
+                    text = extract_text_with_ocr(pdf_path, idx)
+                    entries = extract_entries_from_text(text, vendor_config, page=page, pdf_path=pdf_path, page_num=idx)
+                    
+                    if entries:
+                        used_ocr = True
+                        ocr_fallback_pages.append(idx + 1)  # Store 1-based page number
+                    else:
+                        logger.warning(f"Failed to extract entries from page {idx + 1} even with OCR")
+                        failed_pages.append(idx + 1)  # Store 1-based page number
+                        continue
+
+                for entry in entries:
+                    entry["Hash"] = generate_hash(entry, vendor_id)
+                    if entry["Hash"] in load_master_log()["Hash"].values:
+                        logger.info(f"[SKIPPED] Duplicate: {entry}")
+                        continue
+
+                    # Build filename dynamically & sanitize it
+                    filename_parts = [
+                        entry.get(k, "NA")
+                        .replace("/", "-")
+                        .replace("\\", "-")
+                        .replace("\n", " ")
+                        .replace("\r", " ")
+                        .strip()
+                        for k in vendor_config["fields"].keys()
+                    ]
+                    raw_filename = "_".join(filename_parts)
+                    safe_filename = re.sub(r'[<>:"/\\|?*\n\r\t]+', " ", raw_filename).strip() + ".pdf"
+
+                    # Save extracted PDF page
+                    writer = PdfWriter()
+                    writer.add_page(reader.pages[idx])
+                    file_path = os.path.join(vendor_output_dir, safe_filename)
+                    with open(file_path, "wb") as f:
+                        writer.write(f)
+
+                    # Save log entry
+                    log_entry = {
+                        "Vendor": vendor_name,
+                        "Filename": safe_filename,
+                        "Page": idx + 1,
+                        "Source PDF": os.path.basename(pdf_path),
+                        "Created": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "Hash": entry["Hash"],
+                        "OCR_Used": used_ocr,
+                        **entry
+                    }
+                    save_to_log(log_entry)
+                    results.append(log_entry)
+                    logger.info(f"[✔] Saved: {safe_filename}")
+
+            except Exception as e:
+                logger.error(f"Error processing page {idx + 1} in {pdf_path}: {e}")
+                failed_pages.append(idx + 1)  # Store 1-based page number
+                print(f"[!] Error processing page {idx + 1}: {e}")
+    
+    # Include OCR and failure info with results
+    extraction_stats = {
+        "total_pages": total_pages,
+        "successful_pages": total_pages - len(failed_pages),
+        "ocr_fallback_pages": ocr_fallback_pages,
+        "failed_pages": failed_pages,
+        "extraction_success": len(results) > 0,
+        "partial_extraction": len(results) > 0 and (len(ocr_fallback_pages) > 0 or len(failed_pages) > 0),
+    }
+    
+    return results, extraction_stats
+
+def extract_pdf_fields(pdf_path, vendor_config, output_folder="extracted_output"):
+    """
+    Wrapper for views.py: extracts entries from a PDF using vendor config
+    and returns the results along with extraction statistics.
+    
+    Returns:
+        tuple: (list of extracted entries, extraction statistics dict)
+    """
+    return extract_multi_entries(pdf_path, vendor_config, output_folder)

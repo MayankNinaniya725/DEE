@@ -24,21 +24,9 @@ class BrokenLinkMiddleware:
         # Process the request first
         response = self.get_response(request)
         
-        # Only process FileResponse errors or media URLs
-        if (isinstance(response, FileResponse) and response.status_code == 200) or \
-           ('/media/' in request.path and response.status_code == 404):
-            
-            # For FileResponse objects, check if file exists and is readable
-            if isinstance(response, FileResponse):
-                try:
-                    if not hasattr(response, 'file') or not response.file.readable():
-                        return self.handle_broken_file(request)
-                except (IOError, FileNotFoundError, AttributeError):
-                    return self.handle_broken_file(request)
-            
-            # For 404 media requests, return our custom response
-            if '/media/' in request.path and response.status_code == 404:
-                return self.handle_broken_file(request)
+        # Only process media URLs that return 404 - don't interfere with working FileResponse objects
+        if '/media/' in request.path and response.status_code == 404:
+            return self.handle_broken_file(request)
                 
         return response
     

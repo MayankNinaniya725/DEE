@@ -1004,7 +1004,7 @@
     <!-- Enhanced notification system -->
     <script src="{% static 'extractor/js/enhanced-notifications.js' %}?v={% now 'U' %}"></script>
     <script>
-        // Form submission handler with progress tracking
+        // Form submission handler with vendor validation and progress tracking
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -1016,7 +1016,7 @@
             try {
                 const formData = new FormData(this);
                 const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-                let redirectTimeout;
+                
                 const response = await fetch('{% url "process_pdf" %}', {
                     method: 'POST',
                     headers: {
@@ -1026,30 +1026,103 @@
                 });
                 const data = await response.json();
 
+                // Handle vendor validation error
+                if (data.status === 'error') {
+                    resetUI();
+                    
+                    // Show vendor validation error notification
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Vendor Validation Failed',
+                        text: data.message,
+                        html: `
+                            <div style="text-align: left; margin-top: 15px;">
+                                <p style="margin-bottom: 10px; font-weight: bold;">${data.message}</p>
+                                ${data.details ? `<p style="margin-bottom: 8px; color: #666;"><strong>Details:</strong> ${data.details}</p>` : ''}
+                                ${data.detected_vendor ? `<p style="margin-bottom: 5px; color: #666;"><strong>Detected vendor:</strong> ${data.detected_vendor}</p>` : ''}
+                                ${data.confidence ? `<p style="color: #666;"><strong>Confidence:</strong> ${Math.round(data.confidence * 100)}%</p>` : ''}
+                            </div>
+                        `,
+                        confirmButtonText: 'Select Correct Vendor',
+                        confirmButtonColor: '#FF4B2B',
+                        width: '500px',
+                        background: 'linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)',
+                        color: 'white'
+                    }).then(() => {
+                        // Focus on vendor selection
+                        document.getElementById('vendor').focus();
+                    });
+                    return;
+                }
+
+                // Handle successful processing
+                if (data.status === 'processing') {
+                    // Show success notification
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Upload Successful!',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false,
+                        background: 'linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)',
+                        color: 'white'
+                    });
+                    
+                    // Start progress polling if we have a task ID
+                    if (data.task_id) {
+                        localStorage.setItem('lastTaskId', data.task_id);
+                        pollTaskStatus(data.task_id);
+                    }
+                    
+                    // Redirect to dashboard after a short delay
+                    setTimeout(() => {
+                        if (data.redirect) {
+                            window.location.href = data.redirect.startsWith('/') ? data.redirect : '/' + data.redirect;
+                        } else {
+                            window.location.href = '{% url "dashboard" %}';
+                        }
+                    }, 2500);
+                    return;
+                }
+
+                // Handle other response formats (backward compatibility)
                 if (!response.ok) {
-                    // Store error in session and redirect
-                    window.location.href = '{% url "dashboard" %}';
+                    resetUI();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Upload Failed',
+                        text: data.message || 'An error occurred during upload',
+                        confirmButtonColor: '#FF4B2B'
+                    });
                     return;
                 }
                 
-                // If we have a task ID, store it and redirect
+                // Fallback handling for old response format
                 if (data.task_id) {
                     localStorage.setItem('lastTaskId', data.task_id);
+                    pollTaskStatus(data.task_id);
                 }
                 
-                // Redirect to dashboard properly
                 if (data.redirect) {
-                    // Make sure we're using the absolute path, not a relative one
-                    window.location.href = data.redirect.startsWith('/') ? data.redirect : '/' + data.redirect;
+                    setTimeout(() => {
+                        window.location.href = data.redirect.startsWith('/') ? data.redirect : '/' + data.redirect;
+                    }, 1000);
                 } else {
-                    // Default fallback to dashboard
-                    window.location.href = '{% url "dashboard" %}';
+                    setTimeout(() => {
+                        window.location.href = '{% url "dashboard" %}';
+                    }, 1000);
                 }
 
             } catch (error) {
                 console.error('Upload error:', error);
-                // Redirect to dashboard with error
-                window.location.href = '{% url "dashboard" %}';
+                resetUI();
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Connection Error',
+                    text: 'Failed to upload file. Please check your connection and try again.',
+                    confirmButtonColor: '#FF4B2B'
+                });
             }
         });
         
@@ -1106,7 +1179,7 @@
             document.getElementById('submitBtn').style.display = 'block';
         }
         
-        // Poll task status for progress updates
+        // Poll task status for progress updates using new progress endpoint
         function pollTaskStatus(taskId) {
             const progressBar = document.getElementById('progressBar');
             const progressPercent = document.getElementById('progressPercent');
@@ -1114,29 +1187,20 @@
             
             const pollInterval = setInterval(async () => {
                 try {
-                    const response = await fetch(`/task-status/${taskId}/`);
+                    const response = await fetch(`/progress/${taskId}/`);
                     const data = await response.json();
                     
-                    if (data.state === 'PROGRESS') {
-                        let percent = 25; // Default progress
-                        if (data.current && data.total) {
-                            percent = Math.round((data.current / data.total) * 100);
-                        }
-                        
-                        progressBar.style.width = `${percent}%`;
-                        progressBar.setAttribute('aria-valuenow', percent);
-                        progressPercent.textContent = `${percent}%`;
-                        
-                        // Update phase text with icons
-                        const phaseMap = {
-                            'loading': '<i class="fas fa-file-pdf"></i> Loading PDF file...',
-                            'extracting': '<i class="fas fa-search"></i> Extracting data...',
-                            'saving': '<i class="fas fa-save"></i> Saving extracted data...',
-                            'finalizing': '<i class="fas fa-check-circle"></i> Finalizing extraction...'
-                        };
-                        progressPhase.innerHTML = phaseMap[data.phase] || '<i class="fas fa-sync-alt fa-spin"></i> Processing...';
-                    } 
-                    else if (data.state === 'SUCCESS') {
+                    // Update progress bar with the percentage from backend
+                    const percent = data.progress || 0;
+                    progressBar.style.width = `${percent}%`;
+                    progressBar.setAttribute('aria-valuenow', percent);
+                    progressPercent.textContent = `${percent}%`;
+                    
+                    // Update phase message
+                    progressPhase.innerHTML = data.message || '<i class="fas fa-sync-alt fa-spin"></i> Processing...';
+                    
+                    // Check if extraction is complete
+                    if (data.state === 'SUCCESS' || percent >= 100) {
                         clearInterval(pollInterval);
                         
                         // Complete progress UI
@@ -1144,34 +1208,53 @@
                         progressBar.setAttribute('aria-valuenow', 100);
                         progressPercent.textContent = '100%';
                         
-                        // Handle successful completion
-                        if (data.status === 'completed' || data.status === 'partial_success_ocr') {
-                            // Show success notification and offer to go to dashboard
-                            showExtractionNotification(data.extracted || 0, 'completed');
-                        } else {
-                            // Show partial success notification
-                            showExtractionNotification(data.extracted || 0, 'partial_success_ocr');
+                        // Show success notification
+                        if (data.message.includes('✅')) {
+                            // Success case
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Extraction Complete!',
+                                text: data.message,
+                                timer: 3000,
+                                showConfirmButton: false,
+                                background: 'linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)',
+                                color: 'white'
+                            });
+                        } else if (data.message.includes('⚠️')) {
+                            // Partial success case
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Partial Extraction',
+                                text: data.message,
+                                timer: 3000,
+                                showConfirmButton: false,
+                                background: 'linear-gradient(135deg, #F09819 0%, #EDDE5D 100%)',
+                                color: 'white'
+                            });
                         }
                         
                         // Clear task ID from storage
                         localStorage.removeItem('lastTaskId');
                         
-                        // Redirect after a short delay
+                        // Auto-refresh dashboard after delay
                         setTimeout(() => {
                             window.location.href = '{% url "dashboard" %}';
-                        }, 1500);
+                        }, 2000);
                     } 
-                    else if (data.state === 'FAILURE') {
+                    else if (data.state === 'FAILURE' || data.message.includes('❌')) {
                         clearInterval(pollInterval);
                         resetUI();
                         
                         // Show error notification
-                        // Show error notification
-                        showEnhancedNotification(data.message || 'Extraction failed. Please check logs for details.', 'error', {
+                        Swal.fire({
+                            icon: 'error',
                             title: 'Extraction Failed',
-                            position: 'center',
-                            timer: 10000,
-                            showConfirmButton: true
+                            text: data.message || 'Extraction failed. Please try again.',
+                            timer: 5000,
+                            showConfirmButton: true,
+                            background: 'linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)',
+                            color: 'white',
+                            confirmButtonColor: '#FF4B2B'
                         });
                         
                         // Clear task ID from storage
@@ -1182,8 +1265,18 @@
                     }
                 } catch (error) {
                     console.error('Error polling task status:', error);
+                    clearInterval(pollInterval);
+                    resetUI();
+                    
+                    // Show error notification
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Connection Error',
+                        text: 'Failed to check extraction progress. Please refresh the page.',
+                        confirmButtonColor: '#FF4B2B'
+                    });
                 }
-            }, 1000);
+            }, 2000); // Poll every 2 seconds as requested
         }
         
         // Drag and drop file upload functionality

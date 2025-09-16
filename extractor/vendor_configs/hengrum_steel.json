@@ -1,9 +1,60 @@
 {
   "vendor_id": "hengrun",
   "vendor_name": "Jiangyin Hengrun Ring Forging",
+  "extraction_mode": "table",
+  "multi_match": true,
+  "multilingual": true,
   "fields": {
-    "PLATE_NO": "Part No\\.?\\s*[:：]?\\s*([0-9A-Z\\-]+)",
-    "HEAT_NO": "Heat No\\.?\\s*[:：]?\\s*([A-Z0-9\\-]+)",
-    "TEST_CERT_NO": "Certificate No\\.?\\s*[:：]?\\s*([A-Z0-9\\-]+)"
+    "PLATE_NO": {
+      "pattern": "(?:Part No\\.?|产品编号)[\\s:：]*([6B]\\-\\d{4})",
+      "table_column": "Part No.",
+      "alternate_columns": ["产品编号", "Part Number", "Product No."],
+      "match_type": "line_by_line",
+      "extract_all": true
+    },
+    "HEAT_NO": {
+      "pattern": "(?:Heat No\\.?|熔炼号)[\\s:：]*([S][0-9]{8}[0-9A-Z]{2}X?)",
+      "table_column": "Heat No.",
+      "alternate_columns": ["熔炼号", "Heat Number"],
+      "match_type": "global",
+      "share_value": true
+    },
+    "TEST_CERT_NO": {
+      "pattern": "(?:Certificate No\\.?|证书号|PO No\\.?)[\\s:：]*([A-Z0-9\\-]+)",
+      "table_column": "Certificate No.",
+      "alternate_columns": ["证书号", "Certificate Number", "Test Certificate No."],
+      "match_type": "first",
+      "share_value": true
+    },
+    "BATCH_NO": {
+      "pattern": "(?:Batch No\\.?|批号)[\\s:：]*([0-9\\-]+N\\-[0-9]+)",
+      "table_column": "Batch No.",
+      "alternate_columns": ["批号", "Batch Number"],
+      "match_type": "line_by_line",
+      "extract_all": true
+    },
+    "SAMPLE_NO": {
+      "pattern": "(?:Sample No\\.?|试样号)[\\s:：]*([A-Z0-9\\-]+)",
+      "table_column": "Sample No.",
+      "alternate_columns": ["试样号", "Sample Number"],
+      "match_type": "line_by_line",
+      "extract_all": true
+    },
+    "TEST_NO": {
+      "pattern": "(?:Test No\\.?|Test Cert\\.?)[\\s:：]*([0-9]+)",
+      "table_column": "Test No.",
+      "alternate_columns": ["检测号", "Test Number"],
+      "match_type": "line_by_line",
+      "extract_all": true
+    }
+  },
+  "table_settings": {
+    "use_table_extraction": true,
+    "header_patterns": [
+      "Part No\\.|Heat No\\.|Certificate No\\.|Batch No\\.|Sample No\\.|Test No\\.",
+      "产品编号|熔炼号|证书号|批号|试样号|检测号"
+    ],
+    "merge_cells": true,
+    "validate_headers": true
   }
 }

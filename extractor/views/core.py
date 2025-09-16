@@ -276,6 +276,27 @@ def download_excel(request):
     # Get the referring page to redirect back if there's an error
     referer = request.META.get('HTTP_REFERER', '/dashboard/')
     
+    # If no PDF ID is provided, serve the master Excel file
+    if not pdf_id:
+        from django.conf import settings
+        master_path = os.path.join(settings.MEDIA_ROOT, "backups", "master.xlsx")
+        
+        if os.path.exists(master_path):
+            try:
+                response = FileResponse(
+                    open(master_path, "rb"),
+                    as_attachment=True,
+                    filename="Master_Extracted_Data_ReadOnly.xlsx"
+                )
+                response['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                return response
+            except Exception as e:
+                messages.error(request, f"Could not serve Excel file: {str(e)}")
+                return redirect('dashboard')
+        else:
+            messages.error(request, "Master Excel file not found")
+            return redirect('dashboard')
+    
     try:
         pdf = UploadedPDF.objects.get(id=pdf_id)
         extracted_data = ExtractedData.objects.filter(pdf=pdf).order_by('field_key')
@@ -666,3 +687,59 @@ def process_pdf(request):
             'redirect': '/dashboard/'
         })
     return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+def task_progress(request, task_id):
+    """Get progress percentage for a Celery task"""
+    from celery.result import AsyncResult
+    
+    res = AsyncResult(task_id)
+    
+    # Calculate progress percentage based on task state
+    if res.state == "PENDING":
+        progress = 0
+        message = "Task is queued..."
+    elif res.state == "PROGRESS":
+        meta = res.info or {}
+        phase = meta.get("phase", "")
+        current = meta.get("current", 0)
+        total = meta.get("total", 4)
+        
+        # Calculate progress based on phase
+        phase_progress = {
+            "loading": 10,
+            "extracting": 40,
+            "saving": 80,
+            "finalizing": 95
+        }
+        
+        progress = phase_progress.get(phase, (current / total) * 100)
+        message = f"Processing: {phase.title()}..."
+        
+    elif res.state == "SUCCESS":
+        progress = 100
+        result_data = res.result or {}
+        status = result_data.get('status', 'completed')
+        extracted = result_data.get('extracted', 0)
+        
+        if status == 'completed':
+            message = f"✅ Extraction completed! {extracted} fields extracted."
+        elif status == 'partial_success_ocr':
+            message = f"⚠️ Partial extraction: {extracted} fields extracted."
+        elif status == 'failed_ocr':
+            message = "❌ Extraction failed - OCR fallback unsuccessful."
+        else:
+            message = "Processing completed."
+            
+    elif res.state == "FAILURE":
+        progress = 100
+        message = "❌ Extraction failed due to an error."
+    else:
+        progress = 0
+        message = f"Task state: {res.state}"
+    
+    return JsonResponse({
+        "progress": int(progress),
+        "message": message,
+        "state": res.state
+    })

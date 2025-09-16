@@ -17,6 +17,8 @@
     <link rel="stylesheet" href="{% static 'extractor/css/notifications.css' %}?v={% now 'U' %}">
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.20/dist/sweetalert2.min.css">
+    <!-- Toastr CSS for notifications -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <!-- Base notification script -->
     <script src="{% static 'extractor/js/notifications.js' %}?v={% now 'U' %}"></script>
     
@@ -788,27 +790,21 @@
             <div class="download-title">Download Extracted Data</div>
             <p>Download extracted data in various formats. Choose Excel for a tabular view, or the complete package for all PDFs and data.</p>
             <div class="download-options">
-                <a href="{% url 'download_excel' %}" class="download-btn">
+                <a href="{% url 'download_excel' %}" class="download-btn" style="background: linear-gradient(to right, #4b6cb7, #182848);">
                     <i class="fas fa-file-excel"></i> Download Excel
                 </a>
-                <a href="{% url 'download_pdfs_with_excel' %}" class="download-btn" style="margin-left: 10px; background: linear-gradient(to right, #FF416C, #FF4B2B);">
+                <a href="{% url 'download_pdfs_with_excel' %}" class="download-btn" style="background: linear-gradient(to right, #FF416C, #FF4B2B);">
                     <i class="fas fa-file-archive"></i> Download All PDFs + Excel
                 </a>
-                <a href="{% url 'download_all_pdfs_package' %}" class="download-btn" style="margin-left: 10px; background: linear-gradient(to right, #6a11cb, #2575fc);">
+                <a href="{% url 'download_all_pdfs_package' %}" class="download-btn" style="background: linear-gradient(to right, #6a11cb, #2575fc);">
                     <i class="fas fa-download"></i> Download Package
+                </a>
+                <a href="{% url 'regenerate_excel' %}" class="download-btn" style="background: linear-gradient(to right, #28a745, #20c997);">
+                    <i class="fas fa-sync-alt"></i> Regenerate Excel
                 </a>
                 <div class="text-center mt-3" style="width: 100%;">
                     <small class="text-muted">Individual PDF packages are available in the Recent Actions section above.</small>
                 </div>
-                <a href="{% url 'download_package' %}" class="download-btn" style="margin-left: 10px; background: linear-gradient(to right, #11998e, #38ef7d);">
-                    <i class="fas fa-file-archive"></i> Enhanced Package
-                </a>
-                <a href="{% url 'download_large_package' %}" class="download-btn" style="margin-left: 10px; background: linear-gradient(to right, #FC5C7D, #6A82FB);">
-                    <i class="fas fa-file-download"></i> Large Package
-                </a>
-                <a href="{% url 'regenerate_excel' %}" class="download-btn" style="margin-left: 10px; background: linear-gradient(to right, #3B5998, #0F2027);">
-                    <i class="fas fa-sync-alt"></i> Regenerate Excel
-                </a>
             </div>
         </div>
 
@@ -926,9 +922,9 @@
                                 <div class="detail-value">
                                     {{ row|get_item:"Source PDF"|default:"N/A" }}
                                     {% if row|get_item:"Source PDF" %}
-                                        <a href="{% url 'download_single_file_package' pdf_id=row.pdf_id|default:'0' %}" 
-                                           class="btn btn-sm btn-danger" style="margin-left: 10px;">
-                                            <i class="fas fa-file-archive"></i> Download
+                                        <a href="{% url 'download_individual_pdf' pdf_id=row.pdf_id|default:'0' %}" 
+                                           class="btn btn-sm btn-success" style="margin-left: 10px;">
+                                            <i class="fas fa-file-pdf"></i> Download
                                         </a>
                                     {% endif %}
                                 </div>
@@ -1480,6 +1476,136 @@
                 {% endfor %}
             {% endif %}
         });
+
+        // Progress monitoring for active extractions
+        function checkForActiveExtractions() {
+            const activeTaskId = localStorage.getItem('lastTaskId');
+            if (activeTaskId) {
+                startProgressMonitoring(activeTaskId);
+            }
+        }
+
+        function startProgressMonitoring(taskId) {
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressPercent = document.getElementById('progressPercent');
+            const progressPhase = document.getElementById('progressPhase');
+            
+            // Show progress container with animation
+            if (progressContainer) {
+                progressContainer.classList.add('active');
+                progressContainer.style.display = 'block';
+            }
+            
+            // Show progress toast notification
+            const progressToast = toastr.info('Extraction in progress...', 'Processing', {
+                timeOut: 0,
+                extendedTimeOut: 0,
+                closeButton: false,
+                tapToDismiss: false,
+                progressBar: true
+            });
+
+            const pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/progress/${taskId}/`);
+                    const data = await response.json();
+                    
+                    // Update progress bar and UI
+                    if (progressBar && progressPercent && progressPhase) {
+                        const percent = data.progress || 0;
+                        progressBar.style.width = `${percent}%`;
+                        progressBar.setAttribute('aria-valuenow', percent);
+                        progressPercent.textContent = `${percent}%`;
+                        progressPhase.textContent = data.message || 'Processing...';
+                    }
+                    
+                    if (data.state === 'SUCCESS' || data.progress >= 100) {
+                        clearInterval(pollInterval);
+                        toastr.clear(progressToast);
+                        localStorage.removeItem('lastTaskId');
+                        
+                        // Hide progress container after completion
+                        if (progressContainer) {
+                            setTimeout(() => {
+                                progressContainer.style.display = 'none';
+                                progressContainer.classList.remove('active');
+                            }, 2000);
+                        }
+                        
+                        // Show completion notification
+                        if (data.message.includes('✅')) {
+                            toastr.success(data.message, 'Extraction Complete!', {
+                                timeOut: 5000,
+                                closeButton: true
+                            });
+                        } else if (data.message.includes('⚠️')) {
+                            toastr.warning(data.message, 'Partial Success', {
+                                timeOut: 5000,
+                                closeButton: true
+                            });
+                        }
+                        
+                        // Auto-refresh dashboard
+                        setTimeout(() => {
+                            location.reload();
+                        }, 3000);
+                        
+                    } else if (data.state === 'FAILURE' || data.message.includes('❌')) {
+                        clearInterval(pollInterval);
+                        toastr.clear(progressToast);
+                        localStorage.removeItem('lastTaskId');
+                        
+                        // Hide progress container
+                        if (progressContainer) {
+                            progressContainer.style.display = 'none';
+                            progressContainer.classList.remove('active');
+                        }
+                        
+                        toastr.error(data.message || 'Extraction failed', 'Error', {
+                            timeOut: 8000,
+                            closeButton: true
+                        });
+                    }
+                } catch (error) {
+                    console.error('Progress monitoring error:', error);
+                    clearInterval(pollInterval);
+                    toastr.clear(progressToast);
+                    
+                    // Hide progress container on error
+                    if (progressContainer) {
+                        progressContainer.style.display = 'none';
+                        progressContainer.classList.remove('active');
+                    }
+                }
+            }, 2000);
+        }
+
+        // Check for active extractions on page load
+        checkForActiveExtractions();
+    </script>
+    
+    <!-- Toastr JS for notifications -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        // Configure toastr defaults
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
     </script>
 </body>
 </html>

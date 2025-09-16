@@ -36,3 +36,5 @@ RUN mkdir -p /code/media/uploads \
     && chmod -R 777 /code/logs \
     && chmod -R 777 /code/staticfiles \
     && chmod +x /code/start.sh
+
+    RUN chmod +x ./start.sh

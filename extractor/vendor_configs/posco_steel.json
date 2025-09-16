@@ -1,9 +1,86 @@
 {
   "vendor_id": "posco",
   "vendor_name": "POSCO International Corporation",
+  "extraction_mode": "table",
+  "multi_match": true,
   "fields": {
-    "PLATE_NO": "\\bPP\\d{8,12}(?:-\\d+)?\\b",
-    "HEAT_NO": "\\bSU\\d{5,8}\\b",
-    "TEST_CERT_NO": "(?i)\\b\\d{6}-FP\\d{2}[A-Z]{2}-\\d{4}[A-Z]\\d-\\d{4}\\b"
+    "PLATE_NO": {
+      "pattern": "\\bPP\\d{8,12}(?:-\\d+)?\\b",
+      "table_column": "Product No.",
+      "match_type": "line_by_line",
+      "extract_all": true,
+      "required": true
+    },
+    "HEAT_NO": {
+      "pattern": "\\bSU\\d{5,8}\\b",
+      "table_column": "Heat No.",
+      "match_type": "global",
+      "share_value": true,
+      "required": true
+    },
+    "TEST_CERT_NO": {
+      "pattern": "(?i)\\b\\d{6}-FP\\d{2}[A-Z]{2}-\\d{4}[A-Z]\\d-\\d{4}\\b",
+      "match_type": "first",
+      "share_value": true,
+      "required": true,
+      "search_header": true
+    },
+    "ORDER_NO": {
+      "pattern": "Order No\\.\\s*:\\s*(\\d{2}[A-Z]\\d{7})",
+      "match_type": "first",
+      "share_value": true
+    },
+    "PO_NO": {
+      "pattern": "PO No\\.\\s*:\\s*(\\d{2}[A-Z]\\d{7})",
+      "match_type": "first",
+      "share_value": true
+    },
+    "SPEC": {
+      "pattern": "Spec & Type\\s*:\\s*([A-Z0-9\\-/]+)",
+      "match_type": "first",
+      "share_value": true
+    },
+    "SIZE": {
+      "table_column": "Size",
+      "pattern": "\\b\\d+(?:\\.\\d+)?x\\d+(?:\\.\\d+)?x\\d+(?:\\.\\d+)?\\b",
+      "match_type": "line_by_line",
+      "extract_all": true
+    },
+    "QUANTITY": {
+      "table_column": "Quantity",
+      "pattern": "\\b\\d+\\b",
+      "match_type": "line_by_line",
+      "extract_all": true,
+      "data_type": "integer"
+    },
+    "WEIGHT": {
+      "table_column": "Weight",
+      "pattern": "\\b\\d+(?:\\.\\d+)?\\b",
+      "match_type": "line_by_line",
+      "extract_all": true,
+      "data_type": "float"
+    }
+  },
+  "table_settings": {
+    "use_table_extraction": true,
+    "header_patterns": [
+      "Size|Product No\\.|Quantity|Weight|Heat No\\.|YP|TS|EL|V Notch|Bend Test|U\\.S\\.T|Chemical Composition"
+    ],
+    "merge_cells": true,
+    "validate_headers": true,
+    "min_required_columns": 4,
+    "table_start_markers": ["Tensile Test", "Chemical Composition"],
+    "table_end_markers": ["Approved By", "Remarks", "Note"],
+    "ignore_empty_rows": true
+  },
+  "metadata": {
+    "document_type": "Mill Test Certificate",
+    "document_identifier": "Mill Test Certificate",
+    "issuer": "POSCO INTERNATIONAL CORPORATION"
+  },
+  "validation_rules": {
+    "heat_no_format": "^SU\\d{5}$",
+    "plate_no_format": "^PP\\d{8}(?:-\\d+)?$",
+    "cert_no_format": "^\\d{6}-FP\\d{2}[A-Z]{2}-\\d{4}[A-Z]\\d-\\d{4}$"
   }
 }

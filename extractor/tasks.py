@@ -112,10 +112,23 @@ logger = logging.getLogger('extractor.tasks')
 def process_pdf_file(self, uploaded_pdf_id, vendor_config):
     """Celery task for PDF extraction, with robust fallback/status handling"""
     try:
-        self.update_state(state='PROGRESS', meta={'phase': 'loading'})
+        # Phase 1: Loading PDF (10%)
+        self.update_state(state='PROGRESS', meta={
+            'phase': 'loading',
+            'current': 1,
+            'total': 4,
+            'progress': 10
+        })
         uploaded_pdf = UploadedPDF.objects.get(id=uploaded_pdf_id)
+        logger.info(f"Starting extraction for PDF: {uploaded_pdf.file.name}")
 
-        self.update_state(state='PROGRESS', meta={'phase': 'extracting'})
+        # Phase 2: Extracting data (40%)
+        self.update_state(state='PROGRESS', meta={
+            'phase': 'extracting',
+            'current': 2,
+            'total': 4,
+            'progress': 40
+        })
         extracted_data, extraction_stats = extract_pdf_fields(
             uploaded_pdf.file.path, vendor_config,
             output_folder=os.path.join(settings.MEDIA_ROOT, 'extracted')
@@ -134,7 +147,13 @@ def process_pdf_file(self, uploaded_pdf_id, vendor_config):
                 "stats": extraction_stats if 'extraction_stats' in locals() else {}
             }
 
-        self.update_state(state='PROGRESS', meta={'phase': 'saving'})
+        # Phase 3: Saving to database (80%)
+        self.update_state(state='PROGRESS', meta={
+            'phase': 'saving',
+            'current': 3,
+            'total': 4,
+            'progress': 80
+        })
         extraction_count = 0
         for entry in extracted_data:
             page_number = entry.get('Page', 1)
@@ -151,7 +170,14 @@ def process_pdf_file(self, uploaded_pdf_id, vendor_config):
 
         uploaded_pdf.status = 'COMPLETED'
         uploaded_pdf.save()
-        self.update_state(state='PROGRESS', meta={'phase': 'finalizing'})
+        
+        # Phase 4: Finalizing (95%)
+        self.update_state(state='PROGRESS', meta={
+            'phase': 'finalizing',
+            'current': 4,
+            'total': 4,
+            'progress': 95
+        })
         logger.info(f"Extracted {extraction_count} fields from PDF {uploaded_pdf.file.name}")
 
         result_status = "partial_success_ocr" if extraction_stats.get("partial_extraction") else "completed"

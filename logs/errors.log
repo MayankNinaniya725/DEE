@@ -7081,3 +7081,536 @@ UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it 
 2025-09-08 16:39:37,149 - WARNING - Not Found: /download/single-file-package/17/
 2025-09-08 16:39:37,212 - WARNING - Not Found: /favicon.ico
 2025-09-10 10:52:39,530 - WARNING - Not Found: /favicon.ico
+2025-09-15 11:37:10,256 - WARNING - Not Found: /favicon.ico
+2025-09-15 11:37:51,940 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 479, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 11:37:52,104 - WARNING - Not Found: /download/excel/
+2025-09-15 11:37:52,110 - WARNING - Method Not Allowed (HEAD): /download/package/
+2025-09-15 11:37:52,126 - WARNING - Not Found: /download/excel/
+2025-09-15 11:37:52,136 - WARNING - Method Not Allowed (HEAD): /download/large-package/
+2025-09-15 11:37:52,202 - WARNING - Not Found: /download/single-file-package/18/
+2025-09-15 11:37:52,288 - WARNING - Not Found: /download/single-file-package/18/
+2025-09-15 11:37:52,507 - WARNING - Not Found: /download/all-pdfs-package/
+2025-09-15 11:37:54,872 - WARNING - Not Found: /download/single-file-package/17/
+2025-09-15 11:37:54,905 - WARNING - Not Found: /download/single-file-package/17/
+2025-09-15 11:38:03,283 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 479, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 11:38:03,428 - WARNING - Method Not Allowed (HEAD): /download/package/
+2025-09-15 11:38:03,434 - WARNING - Not Found: /download/excel/
+2025-09-15 11:38:03,460 - WARNING - Not Found: /download/excel/
+2025-09-15 11:38:03,461 - WARNING - Method Not Allowed (HEAD): /download/large-package/
+2025-09-15 11:38:03,515 - WARNING - Not Found: /download/single-file-package/18/
+2025-09-15 11:38:03,580 - WARNING - Not Found: /download/single-file-package/18/
+2025-09-15 11:38:03,630 - WARNING - Not Found: /download/all-pdfs-package/
+2025-09-15 11:38:05,866 - WARNING - Not Found: /download/single-file-package/17/
+2025-09-15 11:38:05,893 - WARNING - Not Found: /download/single-file-package/17/
+2025-09-15 11:39:12,149 - INFO - /code/extractor/views/single_file_package.py changed, reloading.
+2025-09-15 11:39:41,241 - INFO - /code/extractor/views/single_file_package.py changed, reloading.
+2025-09-15 11:39:54,522 - INFO - /code/extractor/views/single_file_package.py changed, reloading.
+2025-09-15 11:40:08,431 - INFO - /code/extractor/views/single_file_package.py changed, reloading.
+2025-09-15 11:40:17,943 - INFO - /code/extractor/views/single_file_package.py changed, reloading.
+2025-09-15 11:40:42,034 - INFO - /code/extractor/views/single_file_package.py changed, reloading.
+2025-09-15 11:42:39,865 - INFO - /code/extractor/views/single_file_package.py changed, reloading.
+2025-09-15 11:43:39,827 - INFO - /code/extractor/views/single_file_package.py changed, reloading.
+2025-09-15 11:44:12,769 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 479, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 11:44:12,955 - WARNING - Not Found: /download/excel/
+2025-09-15 11:44:12,964 - WARNING - Method Not Allowed (HEAD): /download/package/
+2025-09-15 11:44:12,980 - WARNING - Not Found: /download/excel/
+2025-09-15 11:44:12,994 - WARNING - Method Not Allowed (HEAD): /download/large-package/
+2025-09-15 11:44:13,085 - ERROR - Package creation failed for PDF 16: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_svxsyq7.pdf
+2025-09-15 11:44:13,168 - ERROR - Package creation failed for PDF 15: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_T6O5Biy.pdf
+2025-09-15 11:44:13,250 - ERROR - Package creation failed for PDF 14: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_si1mdWs.pdf
+2025-09-15 11:44:13,343 - ERROR - Package creation failed for PDF 13: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_Gn5hpTW.pdf
+2025-09-15 11:44:13,372 - WARNING - Not Found: /download/all-pdfs-package/
+2025-09-15 11:44:13,407 - ERROR - Package creation failed for PDF 12: No extracted data found for PDF uploads/test_fix_4cbb428.pdf
+2025-09-15 11:44:13,424 - ERROR - Package creation failed for PDF 11: No extracted data found for PDF test_fix_4cbb428.pdf
+2025-09-15 11:44:13,500 - ERROR - Package creation failed for PDF 10: No extracted data found for PDF test_fix_e2f478a.pdf
+2025-09-15 11:44:13,509 - ERROR - Package creation failed for PDF 9: No extracted data found for PDF test_upload_d1c7ff4.pdf
+2025-09-15 11:44:13,563 - WARNING - Not Found: /download/single-file-package/18/
+2025-09-15 11:44:13,606 - WARNING - Not Found: /favicon.ico
+2025-09-15 11:44:13,660 - WARNING - Not Found: /download/single-file-package/18/
+2025-09-15 11:44:15,288 - WARNING - Not Found: /download/single-file-package/17/
+2025-09-15 11:44:15,296 - WARNING - Not Found: /download/single-file-package/17/
+2025-09-15 11:49:35,560 - WARNING - Not Found: /download/single-file-package/18/
+2025-09-15 11:50:17,408 - INFO - /code/extractor/urls.py changed, reloading.
+2025-09-15 11:50:55,073 - WARNING - Not Found: /download/single-file-package/18/
+2025-09-15 11:51:06,797 - INFO - /code/extractor_project/urls.py changed, reloading.
+2025-09-15 11:51:15,076 - INFO - /code/extractor/urls.py changed, reloading.
+2025-09-15 11:51:24,467 - INFO - /code/extractor/urls.py changed, reloading.
+2025-09-15 11:51:58,036 - WARNING - Not Found: /download/single-file-package/18/
+2025-09-15 11:52:10,388 - INFO - /code/extractor/urls.py changed, reloading.
+2025-09-15 11:52:23,121 - INFO - /code/extractor/views/single_file_package.py changed, reloading.
+2025-09-15 11:52:53,152 - WARNING - Not Found: /download/single-file-package/18/
+2025-09-15 11:53:16,075 - INFO - /code/extractor/views/single_file_package.py changed, reloading.
+2025-09-15 11:53:27,021 - WARNING - Not Found: /download/single-file-package/18/
+2025-09-15 11:53:40,939 - INFO - /code/extractor/views/single_file_package.py changed, reloading.
+2025-09-15 11:53:50,834 - WARNING - Not Found: /download/single-file-package/18/
+2025-09-15 11:54:21,149 - INFO - /code/extractor_project/settings.py changed, reloading.
+2025-09-15 11:55:03,491 - INFO - /code/extractor/middleware.py changed, reloading.
+2025-09-15 11:55:12,732 - INFO - /code/extractor/middleware.py changed, reloading.
+2025-09-15 11:55:20,761 - INFO - /code/extractor_project/settings.py changed, reloading.
+2025-09-15 11:55:27,602 - INFO - /code/extractor/urls.py changed, reloading.
+2025-09-15 11:55:47,175 - INFO - /code/extractor/views/single_file_package.py changed, reloading.
+2025-09-15 11:57:03,889 - INFO - /code/extractor/urls.py changed, reloading.
+2025-09-15 11:57:41,408 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 479, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 11:57:41,494 - WARNING - Method Not Allowed (HEAD): /download/package/
+2025-09-15 11:57:41,559 - WARNING - Method Not Allowed (HEAD): /download/large-package/
+2025-09-15 11:57:41,619 - ERROR - Package creation failed for PDF 16: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_svxsyq7.pdf
+2025-09-15 11:57:41,680 - ERROR - Package creation failed for PDF 15: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_T6O5Biy.pdf
+2025-09-15 11:57:41,735 - ERROR - Package creation failed for PDF 14: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_si1mdWs.pdf
+2025-09-15 11:57:41,744 - ERROR - Package creation failed for PDF 13: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_Gn5hpTW.pdf
+2025-09-15 11:57:41,763 - ERROR - Package creation failed for PDF 12: No extracted data found for PDF uploads/test_fix_4cbb428.pdf
+2025-09-15 11:57:41,766 - ERROR - Package creation failed for PDF 11: No extracted data found for PDF test_fix_4cbb428.pdf
+2025-09-15 11:57:41,799 - ERROR - Package creation failed for PDF 10: No extracted data found for PDF test_fix_e2f478a.pdf
+2025-09-15 11:57:41,812 - ERROR - Package creation failed for PDF 9: No extracted data found for PDF test_upload_d1c7ff4.pdf
+2025-09-15 11:57:41,825 - WARNING - Not Found: /favicon.ico
+2025-09-15 12:05:52,660 - INFO - /code/extractor/views/single_file_package.py changed, reloading.
+2025-09-15 12:06:24,400 - INFO - /code/extractor/views/single_file_package.py changed, reloading.
+2025-09-15 12:07:50,492 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 479, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:07:50,565 - WARNING - Method Not Allowed (HEAD): /download/package/
+2025-09-15 12:07:50,574 - WARNING - Method Not Allowed (HEAD): /download/large-package/
+2025-09-15 12:07:50,757 - ERROR - Package creation failed for PDF 16: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_svxsyq7.pdf
+2025-09-15 12:07:50,837 - ERROR - Package creation failed for PDF 15: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_T6O5Biy.pdf
+2025-09-15 12:07:50,889 - ERROR - Package creation failed for PDF 14: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_si1mdWs.pdf
+2025-09-15 12:07:50,902 - ERROR - Package creation failed for PDF 13: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_Gn5hpTW.pdf
+2025-09-15 12:07:50,939 - ERROR - Package creation failed for PDF 12: No extracted data found for PDF uploads/test_fix_4cbb428.pdf
+2025-09-15 12:07:50,953 - ERROR - Package creation failed for PDF 11: No extracted data found for PDF test_fix_4cbb428.pdf
+2025-09-15 12:07:50,968 - ERROR - Package creation failed for PDF 10: No extracted data found for PDF test_fix_e2f478a.pdf
+2025-09-15 12:07:50,970 - ERROR - Package creation failed for PDF 9: No extracted data found for PDF test_upload_d1c7ff4.pdf
+2025-09-15 12:07:51,057 - WARNING - Not Found: /favicon.ico
+2025-09-15 12:08:46,795 - INFO - /code/extractor/views/single_file_package.py changed, reloading.
+2025-09-15 12:10:05,073 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 479, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:10:10,441 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 479, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:10:10,507 - WARNING - Method Not Allowed (HEAD): /download/package/
+2025-09-15 12:10:10,640 - WARNING - Method Not Allowed (HEAD): /download/large-package/
+2025-09-15 12:10:10,753 - ERROR - Package creation failed for PDF 16: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_svxsyq7.pdf
+2025-09-15 12:10:10,830 - ERROR - Package creation failed for PDF 15: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_T6O5Biy.pdf
+2025-09-15 12:10:10,875 - ERROR - Package creation failed for PDF 14: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_si1mdWs.pdf
+2025-09-15 12:10:10,881 - ERROR - Package creation failed for PDF 13: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_Gn5hpTW.pdf
+2025-09-15 12:10:10,898 - ERROR - Package creation failed for PDF 12: No extracted data found for PDF uploads/test_fix_4cbb428.pdf
+2025-09-15 12:10:10,914 - ERROR - Package creation failed for PDF 11: No extracted data found for PDF test_fix_4cbb428.pdf
+2025-09-15 12:10:10,941 - ERROR - Package creation failed for PDF 10: No extracted data found for PDF test_fix_e2f478a.pdf
+2025-09-15 12:10:10,942 - ERROR - Package creation failed for PDF 9: No extracted data found for PDF test_upload_d1c7ff4.pdf
+2025-09-15 12:20:02,650 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 479, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:20:02,651 - WARNING - Method Not Allowed (HEAD): /download/package/
+2025-09-15 12:20:02,691 - WARNING - Method Not Allowed (HEAD): /download/large-package/
+2025-09-15 12:20:02,816 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 479, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:20:02,899 - WARNING - Method Not Allowed (HEAD): /download/package/
+2025-09-15 12:20:02,945 - WARNING - Method Not Allowed (HEAD): /download/large-package/
+2025-09-15 12:20:03,154 - ERROR - Package creation failed for PDF 16: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_svxsyq7.pdf
+2025-09-15 12:20:03,238 - ERROR - Package creation failed for PDF 15: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_T6O5Biy.pdf
+2025-09-15 12:20:03,270 - ERROR - Package creation failed for PDF 14: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_si1mdWs.pdf
+2025-09-15 12:20:03,319 - ERROR - Package creation failed for PDF 13: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_Gn5hpTW.pdf
+2025-09-15 12:20:03,351 - ERROR - Package creation failed for PDF 12: No extracted data found for PDF uploads/test_fix_4cbb428.pdf
+2025-09-15 12:20:03,400 - ERROR - Package creation failed for PDF 11: No extracted data found for PDF test_fix_4cbb428.pdf
+2025-09-15 12:20:03,435 - ERROR - Package creation failed for PDF 9: No extracted data found for PDF test_upload_d1c7ff4.pdf
+2025-09-15 12:20:03,438 - ERROR - Package creation failed for PDF 10: No extracted data found for PDF test_fix_e2f478a.pdf
+2025-09-15 12:20:03,574 - WARNING - Not Found: /favicon.ico
+2025-09-15 12:20:07,279 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 479, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:20:07,431 - WARNING - Method Not Allowed (HEAD): /download/package/
+2025-09-15 12:20:07,461 - WARNING - Method Not Allowed (HEAD): /download/large-package/
+2025-09-15 12:20:07,530 - ERROR - Package creation failed for PDF 16: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_svxsyq7.pdf
+2025-09-15 12:20:07,610 - ERROR - Package creation failed for PDF 15: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_T6O5Biy.pdf
+2025-09-15 12:20:07,629 - ERROR - Package creation failed for PDF 14: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_si1mdWs.pdf
+2025-09-15 12:20:07,686 - ERROR - Package creation failed for PDF 12: No extracted data found for PDF uploads/test_fix_4cbb428.pdf
+2025-09-15 12:20:07,687 - ERROR - Package creation failed for PDF 13: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_Gn5hpTW.pdf
+2025-09-15 12:20:07,701 - ERROR - Package creation failed for PDF 11: No extracted data found for PDF test_fix_4cbb428.pdf
+2025-09-15 12:20:07,752 - ERROR - Package creation failed for PDF 10: No extracted data found for PDF test_fix_e2f478a.pdf
+2025-09-15 12:20:07,758 - ERROR - Package creation failed for PDF 9: No extracted data found for PDF test_upload_d1c7ff4.pdf
+2025-09-15 12:28:41,152 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 479, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:28:41,308 - WARNING - Method Not Allowed (HEAD): /download/package/
+2025-09-15 12:28:41,331 - WARNING - Method Not Allowed (HEAD): /download/large-package/
+2025-09-15 12:28:41,400 - ERROR - Package creation failed for PDF 16: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_svxsyq7.pdf
+2025-09-15 12:28:41,472 - ERROR - Package creation failed for PDF 15: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_T6O5Biy.pdf
+2025-09-15 12:28:41,511 - ERROR - Package creation failed for PDF 14: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_si1mdWs.pdf
+2025-09-15 12:28:41,527 - ERROR - Package creation failed for PDF 13: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_Gn5hpTW.pdf
+2025-09-15 12:28:41,576 - ERROR - Package creation failed for PDF 12: No extracted data found for PDF uploads/test_fix_4cbb428.pdf
+2025-09-15 12:28:41,583 - ERROR - Package creation failed for PDF 11: No extracted data found for PDF test_fix_4cbb428.pdf
+2025-09-15 12:28:41,602 - ERROR - Package creation failed for PDF 10: No extracted data found for PDF test_fix_e2f478a.pdf
+2025-09-15 12:28:41,608 - ERROR - Package creation failed for PDF 9: No extracted data found for PDF test_upload_d1c7ff4.pdf
+2025-09-15 12:28:41,702 - WARNING - Not Found: /favicon.ico
+2025-09-15 12:28:45,108 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 479, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:28:45,312 - WARNING - Method Not Allowed (HEAD): /download/package/
+2025-09-15 12:28:45,345 - WARNING - Method Not Allowed (HEAD): /download/large-package/
+2025-09-15 12:28:45,429 - ERROR - Package creation failed for PDF 16: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_svxsyq7.pdf
+2025-09-15 12:28:45,502 - ERROR - Package creation failed for PDF 15: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_T6O5Biy.pdf
+2025-09-15 12:28:45,519 - ERROR - Package creation failed for PDF 14: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_si1mdWs.pdf
+2025-09-15 12:28:45,571 - ERROR - Package creation failed for PDF 13: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_Gn5hpTW.pdf
+2025-09-15 12:28:45,583 - ERROR - Package creation failed for PDF 12: No extracted data found for PDF uploads/test_fix_4cbb428.pdf
+2025-09-15 12:28:45,587 - ERROR - Package creation failed for PDF 11: No extracted data found for PDF test_fix_4cbb428.pdf
+2025-09-15 12:28:45,637 - ERROR - Package creation failed for PDF 10: No extracted data found for PDF test_fix_e2f478a.pdf
+2025-09-15 12:28:45,637 - ERROR - Package creation failed for PDF 9: No extracted data found for PDF test_upload_d1c7ff4.pdf
+2025-09-15 12:29:03,937 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 479, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:29:04,089 - WARNING - Method Not Allowed (HEAD): /download/package/
+2025-09-15 12:29:04,120 - WARNING - Method Not Allowed (HEAD): /download/large-package/
+2025-09-15 12:29:04,196 - ERROR - Package creation failed for PDF 16: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_svxsyq7.pdf
+2025-09-15 12:29:04,269 - ERROR - Package creation failed for PDF 15: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_T6O5Biy.pdf
+2025-09-15 12:29:04,290 - ERROR - Package creation failed for PDF 14: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_si1mdWs.pdf
+2025-09-15 12:29:04,341 - ERROR - Package creation failed for PDF 13: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_Gn5hpTW.pdf
+2025-09-15 12:29:04,343 - ERROR - Package creation failed for PDF 12: No extracted data found for PDF uploads/test_fix_4cbb428.pdf
+2025-09-15 12:29:04,358 - ERROR - Package creation failed for PDF 11: No extracted data found for PDF test_fix_4cbb428.pdf
+2025-09-15 12:29:04,410 - ERROR - Package creation failed for PDF 9: No extracted data found for PDF test_upload_d1c7ff4.pdf
+2025-09-15 12:29:04,414 - ERROR - Package creation failed for PDF 10: No extracted data found for PDF test_fix_e2f478a.pdf
+2025-09-15 12:29:11,649 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 479, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:29:15,276 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 479, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:29:15,424 - WARNING - Method Not Allowed (HEAD): /download/package/
+2025-09-15 12:29:15,458 - WARNING - Method Not Allowed (HEAD): /download/large-package/
+2025-09-15 12:29:15,533 - ERROR - Package creation failed for PDF 16: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_svxsyq7.pdf
+2025-09-15 12:29:15,612 - ERROR - Package creation failed for PDF 15: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_T6O5Biy.pdf
+2025-09-15 12:29:15,674 - ERROR - Package creation failed for PDF 14: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_si1mdWs.pdf
+2025-09-15 12:29:15,683 - ERROR - Package creation failed for PDF 13: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_Gn5hpTW.pdf
+2025-09-15 12:29:15,692 - ERROR - Package creation failed for PDF 12: No extracted data found for PDF uploads/test_fix_4cbb428.pdf
+2025-09-15 12:29:15,748 - ERROR - Package creation failed for PDF 11: No extracted data found for PDF test_fix_4cbb428.pdf
+2025-09-15 12:29:15,753 - ERROR - Package creation failed for PDF 10: No extracted data found for PDF test_fix_e2f478a.pdf
+2025-09-15 12:29:15,759 - ERROR - Package creation failed for PDF 9: No extracted data found for PDF test_upload_d1c7ff4.pdf
+2025-09-15 12:35:55,979 - INFO - /code/extractor/urls.py changed, reloading.
+2025-09-15 12:37:46,982 - INFO - /code/extractor/urls.py changed, reloading.
+2025-09-15 12:37:54,672 - INFO - /code/extractor/urls.py changed, reloading.
+2025-09-15 12:38:04,703 - INFO - /code/extractor/urls.py changed, reloading.
+2025-09-15 12:38:37,489 - INFO - /code/extractor/views/core.py changed, reloading.
+2025-09-15 12:39:59,892 - INFO - /code/extractor/views/core.py changed, reloading.
+2025-09-15 12:40:06,886 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 500, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:40:07,092 - WARNING - Method Not Allowed (HEAD): /download/package/
+2025-09-15 12:40:07,168 - WARNING - Method Not Allowed (HEAD): /download/large-package/
+2025-09-15 12:40:07,244 - ERROR - Package creation failed for PDF 16: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_svxsyq7.pdf
+2025-09-15 12:40:07,315 - ERROR - Package creation failed for PDF 15: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_T6O5Biy.pdf
+2025-09-15 12:40:07,328 - ERROR - Package creation failed for PDF 14: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_si1mdWs.pdf
+2025-09-15 12:40:07,376 - ERROR - Package creation failed for PDF 13: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_Gn5hpTW.pdf
+2025-09-15 12:40:07,393 - ERROR - Package creation failed for PDF 12: No extracted data found for PDF uploads/test_fix_4cbb428.pdf
+2025-09-15 12:40:07,400 - ERROR - Package creation failed for PDF 11: No extracted data found for PDF test_fix_4cbb428.pdf
+2025-09-15 12:40:07,402 - ERROR - Package creation failed for PDF 10: No extracted data found for PDF test_fix_e2f478a.pdf
+2025-09-15 12:40:07,440 - ERROR - Package creation failed for PDF 9: No extracted data found for PDF test_upload_d1c7ff4.pdf
+2025-09-15 12:40:07,492 - WARNING - Not Found: /favicon.ico
+2025-09-15 12:46:21,953 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 500, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:46:22,210 - ERROR - Package creation failed for PDF 16: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_svxsyq7.pdf
+2025-09-15 12:46:22,331 - ERROR - Package creation failed for PDF 15: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_T6O5Biy.pdf
+2025-09-15 12:46:22,485 - ERROR - Package creation failed for PDF 14: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_si1mdWs.pdf
+2025-09-15 12:46:22,519 - ERROR - Package creation failed for PDF 13: No extracted data found for PDF uploads/DFIPL-WNEL-001-S1_Gn5hpTW.pdf
+2025-09-15 12:46:22,535 - ERROR - Package creation failed for PDF 12: No extracted data found for PDF uploads/test_fix_4cbb428.pdf
+2025-09-15 12:46:22,537 - ERROR - Package creation failed for PDF 11: No extracted data found for PDF test_fix_4cbb428.pdf
+2025-09-15 12:46:22,549 - ERROR - Package creation failed for PDF 10: No extracted data found for PDF test_fix_e2f478a.pdf
+2025-09-15 12:46:22,597 - ERROR - Package creation failed for PDF 9: No extracted data found for PDF test_upload_d1c7ff4.pdf
+2025-09-15 12:51:31,663 - INFO - /code/extractor/views/single_file_package.py changed, reloading.
+2025-09-15 12:51:46,809 - INFO - /code/extractor/urls.py changed, reloading.
+2025-09-15 12:51:56,657 - INFO - /code/extractor/urls.py changed, reloading.
+2025-09-15 12:54:43,514 - WARNING - Not Found: /extractor/dashboard/
+2025-09-15 12:55:05,564 - INFO - /code/extractor/urls.py changed, reloading.
+2025-09-15 12:55:08,659 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 500, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:55:08,896 - ERROR - Vendor directory not found: /code/media/extracted/citic_steel
+2025-09-15 12:55:08,977 - ERROR - No extracted data found for PDF ID: 16
+2025-09-15 12:55:09,020 - ERROR - No extracted data found for PDF ID: 15
+2025-09-15 12:55:09,100 - ERROR - No extracted data found for PDF ID: 13
+2025-09-15 12:55:09,106 - ERROR - No extracted data found for PDF ID: 14
+2025-09-15 12:55:09,157 - ERROR - No extracted data found for PDF ID: 12
+2025-09-15 12:55:09,173 - ERROR - No extracted data found for PDF ID: 11
+2025-09-15 12:55:09,187 - ERROR - No extracted data found for PDF ID: 10
+2025-09-15 12:55:09,197 - ERROR - No extracted data found for PDF ID: 9
+2025-09-15 12:55:11,491 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 500, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:55:11,588 - ERROR - Vendor directory not found: /code/media/extracted/citic_steel
+2025-09-15 12:55:11,807 - ERROR - No extracted data found for PDF ID: 16
+2025-09-15 12:55:11,844 - ERROR - No extracted data found for PDF ID: 15
+2025-09-15 12:55:11,954 - ERROR - No extracted data found for PDF ID: 13
+2025-09-15 12:55:11,955 - ERROR - No extracted data found for PDF ID: 14
+2025-09-15 12:55:12,023 - ERROR - No extracted data found for PDF ID: 12
+2025-09-15 12:55:12,034 - ERROR - No extracted data found for PDF ID: 10
+2025-09-15 12:55:12,039 - ERROR - No extracted data found for PDF ID: 11
+2025-09-15 12:55:12,041 - ERROR - No extracted data found for PDF ID: 9
+2025-09-15 12:55:12,124 - WARNING - Not Found: /favicon.ico
+2025-09-15 12:55:14,005 - ERROR - Vendor directory not found: /code/media/extracted/citic_steel
+2025-09-15 12:55:14,368 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 500, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:55:14,594 - ERROR - Vendor directory not found: /code/media/extracted/citic_steel
+2025-09-15 12:55:14,638 - ERROR - No extracted data found for PDF ID: 16
+2025-09-15 12:55:14,642 - ERROR - No extracted data found for PDF ID: 15
+2025-09-15 12:55:14,703 - ERROR - No extracted data found for PDF ID: 14
+2025-09-15 12:55:14,705 - ERROR - No extracted data found for PDF ID: 13
+2025-09-15 12:55:14,765 - ERROR - No extracted data found for PDF ID: 12
+2025-09-15 12:55:14,770 - ERROR - No extracted data found for PDF ID: 10
+2025-09-15 12:55:14,771 - ERROR - No extracted data found for PDF ID: 11
+2025-09-15 12:55:14,792 - ERROR - No extracted data found for PDF ID: 9
+2025-09-15 12:55:38,868 - ERROR - No extracted data found for PDF ID: 16
+2025-09-15 12:55:39,386 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 500, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:55:39,691 - ERROR - Vendor directory not found: /code/media/extracted/citic_steel
+2025-09-15 12:55:39,719 - ERROR - No extracted data found for PDF ID: 16
+2025-09-15 12:55:39,772 - ERROR - No extracted data found for PDF ID: 15
+2025-09-15 12:55:39,786 - ERROR - No extracted data found for PDF ID: 14
+2025-09-15 12:55:39,810 - ERROR - No extracted data found for PDF ID: 13
+2025-09-15 12:55:39,825 - ERROR - No extracted data found for PDF ID: 12
+2025-09-15 12:55:39,836 - ERROR - No extracted data found for PDF ID: 11
+2025-09-15 12:55:39,847 - ERROR - No extracted data found for PDF ID: 10
+2025-09-15 12:55:39,869 - ERROR - No extracted data found for PDF ID: 9
+2025-09-15 12:55:46,224 - ERROR - Vendor directory not found: /code/media/extracted/citic_steel
+2025-09-15 12:55:46,567 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 500, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:55:46,832 - ERROR - Vendor directory not found: /code/media/extracted/citic_steel
+2025-09-15 12:55:46,880 - ERROR - No extracted data found for PDF ID: 16
+2025-09-15 12:55:46,888 - ERROR - No extracted data found for PDF ID: 15
+2025-09-15 12:55:46,951 - ERROR - No extracted data found for PDF ID: 14
+2025-09-15 12:55:46,967 - ERROR - No extracted data found for PDF ID: 13
+2025-09-15 12:55:47,012 - ERROR - No extracted data found for PDF ID: 12
+2025-09-15 12:55:47,015 - ERROR - No extracted data found for PDF ID: 11
+2025-09-15 12:55:47,019 - ERROR - No extracted data found for PDF ID: 10
+2025-09-15 12:55:47,032 - ERROR - No extracted data found for PDF ID: 9
+2025-09-15 12:55:55,703 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 500, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 12:55:55,940 - ERROR - Vendor directory not found: /code/media/extracted/citic_steel
+2025-09-15 12:55:55,971 - ERROR - No extracted data found for PDF ID: 16
+2025-09-15 12:55:55,972 - ERROR - No extracted data found for PDF ID: 15
+2025-09-15 12:55:56,059 - ERROR - No extracted data found for PDF ID: 14
+2025-09-15 12:55:56,059 - ERROR - No extracted data found for PDF ID: 13
+2025-09-15 12:55:56,128 - ERROR - No extracted data found for PDF ID: 12
+2025-09-15 12:55:56,132 - ERROR - No extracted data found for PDF ID: 11
+2025-09-15 12:55:56,140 - ERROR - No extracted data found for PDF ID: 10
+2025-09-15 12:55:56,146 - ERROR - No extracted data found for PDF ID: 9
+2025-09-15 13:36:10,709 - WARNING - Not Found: /extractor/dashboard/
+2025-09-15 13:37:05,254 - WARNING - Not Found: /favicon.ico
+2025-09-15 13:37:07,949 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 500, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 13:37:08,189 - ERROR - Vendor directory not found: /code/media/extracted/citic_steel
+2025-09-15 13:37:08,239 - ERROR - No extracted data found for PDF ID: 16
+2025-09-15 13:37:08,247 - ERROR - No extracted data found for PDF ID: 15
+2025-09-15 13:37:08,311 - ERROR - No extracted data found for PDF ID: 14
+2025-09-15 13:37:08,321 - ERROR - No extracted data found for PDF ID: 13
+2025-09-15 13:37:08,394 - ERROR - No extracted data found for PDF ID: 12
+2025-09-15 13:37:08,397 - ERROR - No extracted data found for PDF ID: 11
+2025-09-15 13:37:08,404 - ERROR - No extracted data found for PDF ID: 10
+2025-09-15 13:37:08,414 - ERROR - No extracted data found for PDF ID: 9
+2025-09-15 13:41:46,997 - INFO - /code/extractor/urls.py changed, reloading.
+2025-09-15 13:42:04,275 - INFO - /code/extractor/tasks.py changed, reloading.
+2025-09-15 13:42:16,067 - INFO - /code/extractor/tasks.py changed, reloading.
+2025-09-15 13:46:50,164 - INFO - /code/extractor/views/__init__.py changed, reloading.
+2025-09-15 13:46:59,382 - INFO - /code/extractor/views/__init__.py changed, reloading.
+2025-09-15 13:47:19,244 - INFO - /code/extractor/views/core.py changed, reloading.
+2025-09-15 13:47:26,361 - INFO - /code/extractor/urls.py changed, reloading.
+2025-09-15 13:47:38,229 - INFO - /code/extractor/urls.py changed, reloading.
+2025-09-15 13:48:06,380 - WARNING - Not Found: /extractor/dashboard/
+2025-09-15 13:48:14,503 - WARNING - Not Found: /extractor/upload/
+2025-09-15 13:48:53,137 - INFO - /code/extractor/views/core.py changed, reloading.
+2025-09-15 13:49:06,920 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 500, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 13:49:07,192 - ERROR - Vendor directory not found: /code/media/extracted/citic_steel
+2025-09-15 13:49:07,229 - ERROR - No extracted data found for PDF ID: 16
+2025-09-15 13:49:07,291 - ERROR - No extracted data found for PDF ID: 15
+2025-09-15 13:49:07,331 - ERROR - No extracted data found for PDF ID: 14
+2025-09-15 13:49:07,375 - ERROR - No extracted data found for PDF ID: 13
+2025-09-15 13:49:07,415 - ERROR - No extracted data found for PDF ID: 12
+2025-09-15 13:49:07,421 - ERROR - No extracted data found for PDF ID: 11
+2025-09-15 13:49:07,423 - ERROR - No extracted data found for PDF ID: 10
+2025-09-15 13:49:07,456 - ERROR - No extracted data found for PDF ID: 9
+2025-09-15 13:49:07,487 - WARNING - Not Found: /favicon.ico
+2025-09-15 13:55:08,732 - INFO - /code/extractor/utils/extractor.py changed, reloading.
+2025-09-15 13:56:07,039 - INFO - /code/extractor/utils/extractor.py changed, reloading.
+2025-09-15 14:06:22,573 - INFO - /code/extractor/utils/extractor.py changed, reloading.
+2025-09-15 14:14:00,124 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 500, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 14:14:00,361 - ERROR - Vendor directory not found: /code/media/extracted/citic_steel
+2025-09-15 14:14:00,390 - ERROR - No extracted data found for PDF ID: 16
+2025-09-15 14:14:00,477 - ERROR - No extracted data found for PDF ID: 15
+2025-09-15 14:14:00,483 - ERROR - No extracted data found for PDF ID: 14
+2025-09-15 14:14:00,521 - ERROR - No extracted data found for PDF ID: 13
+2025-09-15 14:14:00,589 - ERROR - No extracted data found for PDF ID: 12
+2025-09-15 14:14:00,599 - ERROR - No extracted data found for PDF ID: 11
+2025-09-15 14:14:00,619 - ERROR - No extracted data found for PDF ID: 10
+2025-09-15 14:14:00,631 - ERROR - No extracted data found for PDF ID: 9
+2025-09-15 14:14:30,679 - WARNING - Not Found: /api/task-status/9506c2d6-b086-48cf-a53f-f2fc5bbe4222/
+2025-09-15 14:14:32,705 - WARNING - Not Found: /api/task-status/9506c2d6-b086-48cf-a53f-f2fc5bbe4222/
+2025-09-15 14:14:34,730 - WARNING - Not Found: /api/task-status/9506c2d6-b086-48cf-a53f-f2fc5bbe4222/
+2025-09-15 14:14:37,757 - WARNING - Not Found: /api/task-status/9506c2d6-b086-48cf-a53f-f2fc5bbe4222/
+2025-09-15 14:15:19,119 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 500, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 14:15:19,408 - ERROR - No extracted data found for PDF ID: 19
+2025-09-15 14:15:19,504 - ERROR - Vendor directory not found: /code/media/extracted/citic_steel
+2025-09-15 14:15:19,523 - ERROR - No extracted data found for PDF ID: 16
+2025-09-15 14:15:19,592 - ERROR - No extracted data found for PDF ID: 15
+2025-09-15 14:15:19,599 - ERROR - No extracted data found for PDF ID: 14
+2025-09-15 14:15:19,681 - ERROR - No extracted data found for PDF ID: 13
+2025-09-15 14:15:19,695 - ERROR - No extracted data found for PDF ID: 11
+2025-09-15 14:15:19,697 - ERROR - No extracted data found for PDF ID: 12
+2025-09-15 14:15:19,714 - ERROR - No extracted data found for PDF ID: 10
+2025-09-15 14:15:20,671 - WARNING - Not Found: /api/task-status/9506c2d6-b086-48cf-a53f-f2fc5bbe4222/
+2025-09-15 14:15:22,701 - WARNING - Not Found: /api/task-status/9506c2d6-b086-48cf-a53f-f2fc5bbe4222/
+2025-09-15 14:15:24,725 - WARNING - Not Found: /api/task-status/9506c2d6-b086-48cf-a53f-f2fc5bbe4222/
+2025-09-15 14:15:26,755 - WARNING - Not Found: /api/task-status/9506c2d6-b086-48cf-a53f-f2fc5bbe4222/
+2025-09-15 14:27:26,350 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 500, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 14:27:26,546 - ERROR - No extracted data found for PDF ID: 19
+2025-09-15 14:27:26,575 - ERROR - Vendor directory not found: /code/media/extracted/citic_steel
+2025-09-15 14:27:26,653 - ERROR - No extracted data found for PDF ID: 16
+2025-09-15 14:27:26,682 - ERROR - No extracted data found for PDF ID: 15
+2025-09-15 14:27:26,684 - ERROR - No extracted data found for PDF ID: 14
+2025-09-15 14:27:26,724 - ERROR - No extracted data found for PDF ID: 13
+2025-09-15 14:27:26,735 - ERROR - No extracted data found for PDF ID: 12
+2025-09-15 14:27:26,753 - ERROR - No extracted data found for PDF ID: 10
+2025-09-15 14:27:26,754 - ERROR - No extracted data found for PDF ID: 11
+2025-09-15 14:27:27,681 - WARNING - Not Found: /api/task-status/9506c2d6-b086-48cf-a53f-f2fc5bbe4222/
+2025-09-15 14:27:29,707 - WARNING - Not Found: /api/task-status/9506c2d6-b086-48cf-a53f-f2fc5bbe4222/
+2025-09-15 14:27:31,734 - WARNING - Not Found: /api/task-status/9506c2d6-b086-48cf-a53f-f2fc5bbe4222/
+2025-09-15 14:27:33,756 - WARNING - Not Found: /api/task-status/9506c2d6-b086-48cf-a53f-f2fc5bbe4222/
+2025-09-15 14:33:03,539 - WARNING - Not Found: /api/task-status/03e6da88-7609-4eae-9562-6b3374b20f93/
+2025-09-15 14:33:05,579 - WARNING - Not Found: /api/task-status/03e6da88-7609-4eae-9562-6b3374b20f93/
+2025-09-15 14:33:07,685 - WARNING - Not Found: /api/task-status/03e6da88-7609-4eae-9562-6b3374b20f93/
+2025-09-15 14:33:10,738 - WARNING - Not Found: /api/task-status/03e6da88-7609-4eae-9562-6b3374b20f93/
+2025-09-15 14:33:20,757 - ERROR - Error creating ZIP archive: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+Traceback (most recent call last):
+  File "/code/extractor/views/core.py", line 500, in download_pdfs_with_excel
+    pdf_dir = os.path.join(package_dir, pdf_name_without_ext)
+                                        ^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'pdf_name_without_ext' where it is not associated with a value
+2025-09-15 14:33:20,798 - ERROR - Vendor directory not found: /code/media/extracted/iraeta_steel
+2025-09-15 14:33:20,827 - ERROR - No extracted data found for PDF ID: 19
+2025-09-15 14:33:20,872 - ERROR - Vendor directory not found: /code/media/extracted/citic_steel
+2025-09-15 14:33:20,903 - ERROR - No extracted data found for PDF ID: 16
+2025-09-15 14:33:20,906 - ERROR - No extracted data found for PDF ID: 15
+2025-09-15 14:33:20,930 - ERROR - No extracted data found for PDF ID: 14
+2025-09-15 14:33:20,964 - ERROR - No extracted data found for PDF ID: 13
+2025-09-15 14:33:20,965 - ERROR - No extracted data found for PDF ID: 12
+2025-09-15 14:33:20,991 - ERROR - No extracted data found for PDF ID: 11
+2025-09-15 14:33:21,677 - WARNING - Not Found: /api/task-status/03e6da88-7609-4eae-9562-6b3374b20f93/
+2025-09-15 14:33:23,707 - WARNING - Not Found: /api/task-status/03e6da88-7609-4eae-9562-6b3374b20f93/
+2025-09-15 14:33:25,735 - WARNING - Not Found: /api/task-status/03e6da88-7609-4eae-9562-6b3374b20f93/
+2025-09-15 14:33:27,762 - WARNING - Not Found: /api/task-status/03e6da88-7609-4eae-9562-6b3374b20f93/
+2025-09-15 14:41:21,262 - INFO - /code/extractor/utils/ocr_helper.py changed, reloading.
+2025-09-15 14:42:30,416 - INFO - /code/extractor/utils/ocr_helper.py changed, reloading.
+2025-09-15 14:45:43,819 - ERROR - Error processing page 1 in d:/DEE Fabricom/2025.1.11 24-3765 10P_Part3.pdf: 'dict' object has no attribute 'strip'
+2025-09-15 14:45:58,626 - INFO - /code/extractor/utils/extractor.py changed, reloading.
+2025-09-15 14:46:10,212 - INFO - /code/extractor/utils/extractor.py changed, reloading.
+2025-09-15 14:46:40,405 - ERROR - Error processing page 1 in d:/DEE Fabricom/2025.1.11 24-3765 10P_Part3.pdf: 'dict' object has no attribute 'strip'
+2025-09-15 14:47:04,852 - INFO - /code/extractor/utils/extractor.py changed, reloading.
+2025-09-15 14:47:47,089 - ERROR - Error processing page 1 in d:/DEE Fabricom/2025.1.11 24-3765 10P_Part3.pdf: 'dict' object has no attribute 'strip'
+2025-09-15 14:48:36,346 - ERROR - Error processing page 1 in media/uploads/test_file.pdf: 'dict' object has no attribute 'strip'
+2025-09-15 14:48:54,824 - INFO - /code/extractor/utils/extractor.py changed, reloading.
+2025-09-15 14:49:21,936 - ERROR - Error processing page 1 in media/uploads/test_file.pdf: 'dict' object has no attribute 'strip'
+2025-09-15 14:49:41,766 - INFO - /code/extractor/utils/extractor.py changed, reloading.
+2025-09-15 14:51:42,933 - INFO - /code/extractor/utils/extractor.py changed, reloading.
+2025-09-15 14:54:04,452 - ERROR - Error processing page 1 in media/uploads/test_file.pdf: 'dict' object has no attribute 'strip'
+2025-09-15 14:55:57,334 - INFO - /code/extractor/utils/extractor.py changed, reloading.
