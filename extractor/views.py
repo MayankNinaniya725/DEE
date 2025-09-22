@@ -185,9 +185,23 @@ def process_pdf(request):
                 # Clean up temporary file
                 os.unlink(temp_file_path)
                 
-                # If vendor validation failed, return error
+                # If vendor validation failed, save PDF with error status
                 if not validation_result['is_valid']:
                     logger.warning(f"Vendor validation failed: {validation_result['message']}")
+                    
+                    # Reset file pointer for saving
+                    pdf_file.seek(0)
+                    
+                    # Save PDF with error status so it appears on dashboard
+                    error_pdf = UploadedPDF.objects.create(
+                        file=pdf_file,
+                        vendor=vendor,
+                        file_hash=file_hash,
+                        status='ERROR'
+                    )
+                    
+                    logger.info(f"Saved PDF with vendor error: {error_pdf.file.name} (ID: {error_pdf.id})")
+                    
                     return JsonResponse({
                         'status': 'error',
                         'message': 'Vendor is not correct for the uploaded file.',
@@ -214,12 +228,32 @@ def process_pdf(request):
 
             existing_pdf = UploadedPDF.objects.filter(file_hash=file_hash).first()
             if existing_pdf:
-                # If vendor mismatch, reject
+                # If vendor mismatch, reject but save reference with new vendor as well
                 if existing_pdf.vendor.id != vendor.id:
                     msg = f"PDF previously uploaded for vendor '{existing_pdf.vendor.name}'. Please select the correct vendor."
                     messages.warning(request, msg)
                     store_dashboard_message(request, msg, 'warning', {'original_vendor': existing_pdf.vendor.name, 'new_vendor': vendor.name})
-                    return JsonResponse({'redirect': reverse('dashboard')}, status=200)
+                    
+                    # Create a new record for this vendor with vendor mismatch error
+                    # Reset file pointer for saving
+                    pdf_file.seek(0)
+                    
+                    mismatch_pdf = UploadedPDF.objects.create(
+                        file=pdf_file,
+                        vendor=vendor,
+                        file_hash=file_hash,
+                        status='ERROR'
+                    )
+                    
+                    logger.info(f"Saved vendor mismatch PDF: {mismatch_pdf.file.name} (ID: {mismatch_pdf.id})")
+                    
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': msg,
+                        'type': 'vendor_mismatch',
+                        'original_vendor': existing_pdf.vendor.name,
+                        'new_vendor': vendor.name
+                    }, status=400)
 
                 # If extraction incomplete, retry extraction
                 if existing_pdf.status != 'COMPLETED':
@@ -233,23 +267,41 @@ def process_pdf(request):
                             msg = "Retrying extraction for duplicate PDF"
                             messages.info(request, msg)
                             store_dashboard_message(request, msg, 'info')
-                            return JsonResponse({'message': 'Duplicate PDF detected, retrying extraction.', 'task_id': task.id, 'type': 'duplicate'})
+                            return JsonResponse({
+                                'status': 'processing',
+                                'message': 'Duplicate PDF detected, retrying extraction.',
+                                'task_id': task.id,
+                                'type': 'duplicate'
+                            })
                         else:
                             logger.error(f"Could not find vendor config for {vendor.name}")
                             msg = f"Missing vendor configuration for '{vendor.name}'"
                             messages.error(request, msg)
                             store_dashboard_message(request, msg, 'error')
-                            return JsonResponse({'redirect': reverse('dashboard')}, status=200)
+                            return JsonResponse({
+                                'status': 'error',
+                                'message': msg,
+                                'type': 'config_missing'
+                            }, status=400)
                     except Exception as e:
                         logger.error(f"Error retrying extraction: {str(e)}", exc_info=True)
                         msg = f"Error retrying extraction: {str(e)}"
                         messages.error(request, msg)
                         store_dashboard_message(request, msg, 'error')
-                        return JsonResponse({'error': 'Error retrying extraction', 'type': 'extraction_error'}, status=500)
+                        return JsonResponse({
+                            'status': 'error',
+                            'message': msg,
+                            'type': 'extraction_error'
+                        }, status=500)
 
                 msg = f"This PDF was already processed on {existing_pdf.uploaded_at.strftime('%Y-%m-%d %H:%M:%S')}"
                 messages.warning(request, msg)
-                return JsonResponse({'error': msg, 'type': 'duplicate'}, status=400)
+                return JsonResponse({
+                    'status': 'warning',
+                    'message': msg,
+                    'type': 'duplicate',
+                    'processed_date': existing_pdf.uploaded_at.strftime('%Y-%m-%d %H:%M:%S')
+                }, status=200)
 
             # Save new PDF entry
             pdf = UploadedPDF.objects.create(
@@ -271,7 +323,11 @@ def process_pdf(request):
                 msg = f"Missing vendor configuration for '{vendor.name}'"
                 messages.error(request, msg)
                 store_dashboard_message(request, msg, 'error')
-                return JsonResponse({'redirect': reverse('dashboard')}, status=200)
+                return JsonResponse({
+                    'status': 'error',
+                    'message': msg,
+                    'type': 'config_missing'
+                }, status=400)
 
             # Start the Celery task for extraction
             # Start the task and store task ID
@@ -288,26 +344,39 @@ def process_pdf(request):
                 'status': 'processing',
                 'task_id': task.id,
                 'message': 'PDF uploaded successfully. Starting extraction...',
-                'redirect': reverse('dashboard')  # This returns the correct URL path: /dashboard/
+                'type': 'success'
             })
 
         except Vendor.DoesNotExist:
             msg = "Selected vendor not found"
             messages.error(request, msg)
             store_dashboard_message(request, msg, 'error')
-            return JsonResponse({'redirect': reverse('dashboard')}, status=200)
+            return JsonResponse({
+                'status': 'error',
+                'message': msg,
+                'type': 'vendor_not_found'
+            }, status=400)
 
         except Exception as e:
             logger.error(f"Error processing PDF: {str(e)}", exc_info=True)
             msg = f"Error processing PDF: {str(e)}"
             messages.error(request, msg)
             store_dashboard_message(request, msg, 'error')
-            return JsonResponse({'redirect': reverse('dashboard')}, status=200)
+            return JsonResponse({
+                'status': 'error',
+                'message': msg,
+                'type': 'processing_error',
+                'details': str(e)
+            }, status=500)
 
     msg = "Invalid request"
     messages.error(request, msg)
     store_dashboard_message(request, msg, 'error')
-    return JsonResponse({'redirect': reverse('dashboard')}, status=200)
+    return JsonResponse({
+        'status': 'error',
+        'message': msg,
+        'type': 'invalid_request'
+    }, status=400)
 
 
 def dashboard(request):
@@ -420,45 +489,41 @@ def dashboard(request):
     
     recent_extractions = ExtractedData.objects.select_related('pdf', 'vendor').filter(extraction_filter).order_by('-created_at')[:20]
     
-    # Get unique certificates data for detailed view
+    # Get unique certificates data for detailed view - one per PDF
     certificates = []
-    seen_certs = set()
+    seen_pdf_ids = set()
     
-    for extraction in ExtractedData.objects.select_related('pdf', 'vendor').filter(extraction_filter).order_by('-created_at'):
-        # Create a unique key for each certificate based on PDF and relevant fields
-        cert_key = (
-            extraction.pdf.id,
-            extraction.field_value if extraction.field_key == 'TEST_CERT_NO' else None,
-            extraction.field_value if extraction.field_key == 'HEAT_NO' else None
-        )
-        
-        if cert_key not in seen_certs:
-            seen_certs.add(cert_key)
+    # Get all completed PDFs ordered by upload time
+    processed_pdfs = UploadedPDF.objects.filter(status='COMPLETED').order_by('-uploaded_at')
+    
+    for pdf in processed_pdfs:
+        if pdf.id not in seen_pdf_ids:
+            seen_pdf_ids.add(pdf.id)
             
-            # Get all fields for this certificate
-            cert_data = {
-                'Vendor': extraction.vendor.name,
-                'Created': extraction.created_at,
-                'pdf_id': extraction.pdf.id,
-                'Source PDF': extraction.pdf.file.name,
-                'Page': extraction.page_number,
-                'Filename': os.path.basename(extraction.pdf.file.name),
-                'Remarks': 'N/A'
-            }
+            # Check if this PDF has any extracted data
+            pdf_extractions = ExtractedData.objects.filter(pdf=pdf).order_by('field_key')
             
-            # Get specific fields for this certificate
-            cert_fields = ExtractedData.objects.filter(
-                pdf=extraction.pdf
-            ).order_by('field_key')
-            
-            for field in cert_fields:
-                cert_data[field.field_key] = field.field_value
+            if pdf_extractions.exists():
+                # Get all fields for this certificate
+                cert_data = {
+                    'Vendor': pdf.vendor.name,
+                    'Created': pdf.uploaded_at,
+                    'pdf_id': pdf.id,
+                    'Source PDF': pdf.file.name,
+                    'Page': 'Multiple' if pdf_extractions.values('page_number').distinct().count() > 1 else str(pdf_extractions.first().page_number or 'N/A'),
+                    'Filename': os.path.basename(pdf.file.name),
+                    'Remarks': 'N/A'
+                }
                 
-            certificates.append(cert_data)
-            
-            # Limit to a reasonable number of certificates
-            if len(certificates) >= 50:  # Show last 50 certificates
-                break
+                # Get specific fields for this certificate
+                for field in pdf_extractions:
+                    cert_data[field.field_key] = field.field_value
+                    
+                certificates.append(cert_data)
+                
+                # Limit to a reasonable number of certificates
+                if len(certificates) >= 50:  # Show last 50 certificates
+                    break
     
     # Get current timestamp for the template
     from django.utils import timezone
@@ -603,41 +668,56 @@ def task_progress(request, task_id):
 
 
 def download_excel(request):
-    """Download extraction results as Excel file, for single PDF or all data"""
-    # Simplified version to debug the issue
-    from django.http import HttpResponse
-    
-    # Test basic response first
-    pdf_id = request.GET.get('pdf_id')
-    
-    if pdf_id:
-        return HttpResponse("PDF ID provided: " + str(pdf_id), content_type="text/plain")
-    else:
-        # Try to serve the master Excel file
+    """Download the master Excel file that gets updated with each extraction"""
+    try:
+        # Path to the master Excel file that gets updated automatically
         master_path = os.path.join(settings.MEDIA_ROOT, "backups", "master.xlsx")
         
+        # Check if the master Excel file exists
         if not os.path.exists(master_path):
-            return HttpResponse(f"File not found at: {master_path}", content_type="text/plain")
+            messages.error(request, "Master Excel file not found. Please ensure some PDFs have been processed.")
+            return redirect("dashboard")
         
-        try:
-            with open(master_path, "rb") as f:
-                response = FileResponse(f, as_attachment=True, filename="Master_Data.xlsx")
-                response['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                return response
-        except Exception as e:
-            return HttpResponse(f"Error serving file: {str(e)}", content_type="text/plain")
+        # Generate a filename with timestamp for download
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        download_filename = f"Extracted_Data_{timestamp}.xlsx"
+        
+        # Serve the file for download
+        response = FileResponse(
+            open(master_path, 'rb'),
+            as_attachment=True,
+            filename=download_filename
+        )
+        response['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        response['Content-Disposition'] = f'attachment; filename="{download_filename}"'
+        
+        logger.info(f"Downloaded master Excel file: {download_filename}")
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error downloading Excel file: {str(e)}", exc_info=True)
+        messages.error(request, f"Error downloading Excel file: {str(e)}")
+        return redirect("dashboard")
 
 
 def regenerate_excel(request):
     """Regenerate all Excel files for extracted PDFs"""
     try:
         pdfs = UploadedPDF.objects.all()
+        regenerated_count = 0
         for pdf in pdfs:
             extracted_data = ExtractedData.objects.filter(pdf=pdf)
             if extracted_data.exists():
-                excel_path = os.path.join(settings.MEDIA_ROOT, 'extracted', f"{os.path.splitext(pdf.file.name)[0]}_extraction.xlsx")
+                # Create Excel file locally for admin purposes
+                pdf_name = os.path.splitext(os.path.basename(pdf.file.name))[0]
+                excel_path = os.path.join(settings.MEDIA_ROOT, 'excel', f"{pdf_name}_extraction.xlsx")
+                os.makedirs(os.path.dirname(excel_path), exist_ok=True)
                 create_extraction_excel(excel_path, pdf, extracted_data)
-        messages.success(request, "Excel files regenerated successfully")
+                regenerated_count += 1
+                logger.info(f"Regenerated Excel for {pdf.file.name} at {excel_path}")
+        
+        messages.success(request, f"Excel files regenerated for {regenerated_count} PDFs")
     except Exception as e:
         logger.error(f"Error regenerating Excel files: {str(e)}", exc_info=True)
         messages.error(request, "Error regenerating Excel files")
@@ -701,7 +781,8 @@ def download_pdfs_with_excel(request):
                                     extracted_files.append(file)
 
                     # Create PDF-specific Excel file with filtered data
-                    excel_path = os.path.join(pdf_dir, f"{pdf_name_without_ext}_extraction.xlsx")
+                    excel_filename = f"{pdf_name_without_ext}_extraction.xlsx"
+                    excel_path = os.path.join(pdf_dir, excel_filename)
                     
                     # Get all local extracted files for this PDF
                     local_extracted_dir = os.path.join(settings.MEDIA_ROOT, 'extracted')
@@ -774,6 +855,7 @@ def download_pdfs_with_excel(request):
                     zip_filename = f"{pdf_name_without_ext}_complete_package_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
                     zip_buffer = io.BytesIO()
                     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                        # Add all files from package directory including Excel
                         for root, _, files in os.walk(pdf_dir):
                             for file in files:
                                 file_path = os.path.join(root, file)
@@ -888,15 +970,18 @@ Extracted Files:
                         'Extracted Pages': extracted_count
                     })
 
-                # Create Excel summary
-                excel_path = os.path.join(package_dir, 'extraction_summary.xlsx')
+                # Create Excel summary file locally
+                excel_filename = 'extraction_summary.xlsx'
+                excel_path = os.path.join(package_dir, excel_filename)
                 df = pd.DataFrame(all_data)
-                df.to_excel(excel_path, index=False)
+                df.to_excel(excel_path, index=False, engine='openpyxl')
 
                 # Create ZIP for all
                 zip_filename = f"all_extractions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
                 zip_buffer = io.BytesIO()
                 with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                    
+                    # Add other files from package directory
                     for root, _, files in os.walk(package_dir):
                         for file in files:
                             file_path = os.path.join(root, file)
@@ -1041,7 +1126,7 @@ def download_all_pdfs_package(request):
                 
             # Create comprehensive Excel file with error handling
             try:
-                excel_path = os.path.join(package_dir, 'all_extracted_data.xlsx')
+                excel_buffer = io.BytesIO()
                 
                 # Prepare summary data
                 summary_data = {
@@ -1102,7 +1187,7 @@ def download_all_pdfs_package(request):
                     df_key_fields = pd.DataFrame(key_fields_data) if key_fields_data else None
                     
                     # Write to Excel with proper error handling for duplicate sheets
-                    with pd.ExcelWriter(excel_path, engine='openpyxl', mode='w') as writer:
+                    with pd.ExcelWriter(excel_buffer, engine='openpyxl', mode='w') as writer:
                         # Write each sheet with explicit error handling
                         df_summary.to_excel(writer, sheet_name='Summary', index=False)
                         
@@ -1195,12 +1280,20 @@ to the corresponding PDF file in this package.
                 zip_filename = f"complete_pdf_package_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
                 zip_buffer = io.BytesIO()
                 
-                # Use safe ZIP creation function
-                success, result = create_zip_from_directory(package_dir, zip_buffer)
-                if not success:
-                    raise RuntimeError(f"Failed to create ZIP archive: {result}")
+                # Create ZIP manually to include Excel from buffer
+                with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                    # Add Excel file from buffer
+                    excel_buffer.seek(0)
+                    zipf.writestr('all_extracted_data.xlsx', excel_buffer.getvalue())
+                    
+                    # Add other files from package directory (excluding .xlsx files)
+                    for root, _, files in os.walk(package_dir):
+                        for file in files:
+                            if not file.endswith('.xlsx'):  # Skip xlsx files since we're adding from buffer
+                                file_path = os.path.join(root, file)
+                                arcname = os.path.relpath(file_path, package_dir)
+                                zipf.write(file_path, arcname=arcname)
                 
-                zip_buffer = result
                 zip_buffer.seek(0)
                 
                 response = FileResponse(zip_buffer, as_attachment=True, filename=zip_filename)
@@ -1228,6 +1321,10 @@ def logout_view(request):
     """Handle user logout"""
     logout(request)
     return redirect('login')
+
+
+
+
 
 
 def custom_logout(request):

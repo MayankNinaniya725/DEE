@@ -103,32 +103,53 @@ def create_single_file_package(pdf_id):
                     # Summary sheet - File information
                     pd.DataFrame(summary_data).to_excel(writer, sheet_name='Summary', index=False)
                     
-                    # Group data by combinations for proper row structure
-                    combinations = {}
+                    # Group data by unique combinations (not just page)
+                    # First, collect all field values by page
+                    pages_data = {}
+                    for item in extracted_data:
+                        page_num = item.page_number
+                        if page_num not in pages_data:
+                            pages_data[page_num] = {}
+                        pages_data[page_num][item.field_key] = item.field_value
+                    
+                    # Create separate entries for each unique PLATE_NO combination
+                    combinations = []
                     sr_no = 1
                     
-                    # Group extracted data by page and combination
+                    # Get all unique PLATE_NO values and create entries for each
+                    all_plate_nos = set()
                     for item in extracted_data:
-                        page_key = f"page_{item.page_number}"
-                        if page_key not in combinations:
-                            combinations[page_key] = {
-                                'Sr No': sr_no,
-                                'Vendor': item.vendor.name if item.vendor else 'Unknown',
-                                'PLATE_NO': '', 'HEAT_NO': '', 'TEST_CERT_NO': '',
-                                'Page': item.page_number,
-                                'Source PDF': os.path.basename(pdf.file.name),
-                                'Created': item.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-                                'Remarks': '',
-                                'OCR_Used': False
-                            }
-                            sr_no += 1
+                        if item.field_key == 'PLATE_NO' and item.field_value:
+                            all_plate_nos.add((item.field_value, item.page_number))
+                    
+                    # Create an entry for each unique PLATE_NO
+                    for plate_no, page_num in sorted(all_plate_nos):
+                        # Find corresponding HEAT_NO and TEST_CERT_NO for this page
+                        page_data = pages_data.get(page_num, {})
+                        heat_no = page_data.get('HEAT_NO', '')
+                        test_cert = page_data.get('TEST_CERT_NO', '')
                         
-                        # Update the combination with field values
-                        if item.field_key in ['PLATE_NO', 'HEAT_NO', 'TEST_CERT_NO']:
-                            combinations[page_key][item.field_key] = item.field_value
+                        # Get the latest created timestamp for this page
+                        page_items = [item for item in extracted_data if item.page_number == page_num]
+                        latest_created = max(item.created_at for item in page_items) if page_items else None
+                        
+                        combination = {
+                            'Sr No': sr_no,
+                            'Vendor': page_items[0].vendor.name if page_items and page_items[0].vendor else 'Unknown',
+                            'PLATE_NO': plate_no,
+                            'HEAT_NO': heat_no,
+                            'TEST_CERT_NO': test_cert,
+                            'Page': page_num,
+                            'Source PDF': os.path.basename(pdf.file.name),
+                            'Created': latest_created.strftime("%Y-%m-%d %H:%M:%S") if latest_created else '',
+                            'Remarks': '',
+                            'OCR_Used': False
+                        }
+                        combinations.append(combination)
+                        sr_no += 1
                     
                     # Generate Filename for each combination based on key fields
-                    for page_key, combo in combinations.items():
+                    for combo in combinations:
                         plate_no = combo.get('PLATE_NO', '').replace('/', '-')
                         heat_no = combo.get('HEAT_NO', '').replace('/', '-')
                         test_cert = combo.get('TEST_CERT_NO', '').replace('/', '-')
@@ -144,7 +165,7 @@ def create_single_file_package(pdf_id):
                         combo['Hash'] = hashlib.md5(hash_key.encode('utf-8')).hexdigest()
                     
                     # Extracted Data sheet - matches master_log.xlsx format
-                    extracted_data_list = list(combinations.values())
+                    extracted_data_list = combinations
                     if extracted_data_list:
                         extracted_df = pd.DataFrame(extracted_data_list)
                         # Reorder columns to match master_log.xlsx
@@ -158,14 +179,14 @@ def create_single_file_package(pdf_id):
                     key_data = []
                     for field in key_fields:
                         unique_values = set()
-                        for combo in combinations.values():
+                        for combo in combinations:
                             value = combo.get(field, '')
                             if value:
                                 unique_values.add(value)
                         
                         for value in unique_values:
                             # Find the combination that contains this value
-                            for combo in combinations.values():
+                            for combo in combinations:
                                 if combo.get(field) == value:
                                     key_data.append({
                                         'Field': field,
@@ -224,11 +245,21 @@ def create_single_file_package(pdf_id):
                     
                     vendor_folder_map[vendor_name] = vendor_folder
             
-            # Now collect extracted PDFs - deduplicated by combination key
-            added_files = set()  # Track to avoid duplicates
-            combination_pdfs = {}  # Map combination keys to PDF filenames
+            # Now collect ALL extracted PDFs that match any field values from the extracted data
+            added_files = set()  # Track to avoid true duplicates (same filename)
+            all_matching_pdfs = []  # Collect all PDFs that match extracted field values
             
-            # First, identify unique combinations from the extracted data
+            # Get all field values from the extracted data to match against
+            field_values = set()
+            for item in extracted_data:
+                if item.field_value and item.field_value.strip():
+                    # Clean and normalize field values for matching
+                    clean_value = item.field_value.lower().replace('/', '_').replace('-', '_').replace(' ', '_')
+                    field_values.add(clean_value)
+                    
+            logger.info(f"Looking for PDFs matching field values: {field_values}")
+            
+            # Search through all vendor folders for matching PDFs
             for item in extracted_data:
                 vendor_folder = vendor_folder_map.get(item.vendor.name)
                 if not vendor_folder:
@@ -238,73 +269,44 @@ def create_single_file_package(pdf_id):
                 if not os.path.exists(vendor_dir):
                     continue
                 
-                # Build combination key for this item
-                page_key = f"page_{item.page_number}"
-                if page_key not in combination_pdfs:
-                    # Collect all field values for this page to build combination key
-                    page_data = [d for d in extracted_data if d.page_number == item.page_number]
-                    plate_no = heat_no = test_cert = ''
-                    
-                    for field_item in page_data:
-                        if field_item.field_key == 'PLATE_NO':
-                            plate_no = field_item.field_value
-                        elif field_item.field_key == 'HEAT_NO':
-                            heat_no = field_item.field_value
-                        elif field_item.field_key == 'TEST_CERT_NO':
-                            test_cert = field_item.field_value
-                    
-                    # Create combination key
-                    combination_key = f"{heat_no}_{plate_no}_{test_cert}".replace('/', '-').replace(' ', '_')
-                    
-                    # Look for PDF files that match this combination
-                    matching_pdfs = []
-                    for fname in os.listdir(vendor_dir):
-                        if fname.lower().endswith('.pdf'):
-                            # Check if filename contains key parts of the combination
-                            fname_clean = fname.lower().replace('.pdf', '').replace('-', '_').replace(' ', '_')
-                            
-                            # Look for combinations that match key field values
-                            if (plate_no and plate_no.lower().replace('/', '_').replace('-', '_') in fname_clean) or \
-                               (heat_no and heat_no.lower().replace('/', '_').replace('-', '_') in fname_clean) or \
-                               (test_cert and test_cert.lower().replace('/', '_').replace('-', '_') in fname_clean):
-                                matching_pdfs.append(fname)
-                    
-                    # If we found matching PDFs, use the first one for this combination
-                    if matching_pdfs:
-                        combination_pdfs[combination_key] = matching_pdfs[0]
-                    else:
-                        # Fallback: look for any PDF that might correspond to this page
-                        for fname in os.listdir(vendor_dir):
-                            if fname.lower().endswith('.pdf') and str(item.page_number) in fname:
-                                combination_pdfs[combination_key] = fname
+                # Get all PDF files in this vendor directory
+                for fname in os.listdir(vendor_dir):
+                    if fname.lower().endswith('.pdf'):
+                        fname_clean = fname.lower().replace('.pdf', '').replace('-', '_').replace(' ', '_')
+                        
+                        # Check if this PDF file contains any of our extracted field values
+                        matches_any_field = False
+                        for field_value in field_values:
+                            if field_value and field_value in fname_clean:
+                                matches_any_field = True
+                                logger.info(f"PDF '{fname}' matches field value '{field_value}'")
                                 break
-            
-            # Now add the unique combination PDFs to the ZIP
-            pdf_count = 0
-            for combination_key, pdf_filename in combination_pdfs.items():
-                if pdf_filename not in added_files:
-                    vendor_folder = None
-                    # Find the vendor folder for this PDF
-                    for item in extracted_data:
-                        vendor_folder_name = vendor_folder_map.get(item.vendor.name)
-                        if vendor_folder_name:
-                            vendor_dir = os.path.join(extracted_dir, vendor_folder_name)
-                            pdf_path = os.path.join(vendor_dir, pdf_filename)
+                        
+                        # If this PDF matches any field and hasn't been added yet, include it
+                        if matches_any_field and fname not in added_files:
+                            pdf_path = os.path.join(vendor_dir, fname)
                             if os.path.exists(pdf_path):
-                                try:
-                                    zip_file.write(pdf_path, arcname=f"extracted_pdfs/{pdf_filename}")
-                                    added_files.add(pdf_filename)
-                                    pdf_count += 1
-                                    logger.info(f"Added unique combination PDF: {pdf_filename}")
-                                    break
-                                except Exception as e:
-                                    error_msg = f"Error adding extracted PDF {pdf_filename}: {str(e)}"
-                                    stats['errors'].append(error_msg)
-                                    logger.error(error_msg)
-                            break
+                                all_matching_pdfs.append((pdf_path, fname))
+                                added_files.add(fname)
+                
+                # Only process one vendor folder (break after first match to avoid duplicates from multiple vendors)
+                if all_matching_pdfs:
+                    break
+            
+            # Add all matching PDFs to the ZIP
+            pdf_count = 0
+            for pdf_path, pdf_filename in all_matching_pdfs:
+                try:
+                    zip_file.write(pdf_path, arcname=f"extracted_pdfs/{pdf_filename}")
+                    pdf_count += 1
+                    logger.info(f"Added matching PDF: {pdf_filename}")
+                except Exception as e:
+                    error_msg = f"Error adding extracted PDF {pdf_filename}: {str(e)}"
+                    stats['errors'].append(error_msg)
+                    logger.error(error_msg)
             
             stats['pdf_count'] = pdf_count
-            logger.info(f"Added {pdf_count} unique combination PDFs to package (deduplicated from potential duplicates)")
+            logger.info(f"Added {pdf_count} matching PDFs to package (all PDFs that match extracted field values)")
             
             # Create README file
             readme_content = f"""Extraction Package for {pdf.file.name}

@@ -1,0 +1,39 @@
+{
+  "vendor_id": "hengrun",
+  "vendor_name": "Jiangyin Hengrun Ring Forging",
+  "extraction_mode": "table",
+  "multi_match": true,
+  "multilingual": true,
+  "fields": {
+    "PLATE_NO": {
+      "pattern": "\\b(\\d+\\-\\d{4})\\b",
+      "table_column": "Part No.",
+      "alternate_columns": ["产品编号", "Part Number", "Product No."],
+      "match_type": "line_by_line",
+      "extract_all": true
+    },
+    "HEAT_NO": {
+      "pattern": "\\b(S\\d+[A-Z]*X?)\\b",
+      "table_column": "Heat No.",
+      "alternate_columns": ["熔炼号", "Heat Number"],
+      "match_type": "global",
+      "share_value": true
+    },
+    "TEST_CERT_NO": {
+      "pattern": "(?:Certificate No\\.?|证书号|PO No\\.?)[\\s:：]*([A-Z0-9\\-]+)",
+      "table_column": "Certificate No.",
+      "alternate_columns": ["证书号", "Certificate Number", "Test Certificate No."],
+      "match_type": "first",
+      "share_value": true
+    }
+  },
+  "table_settings": {
+    "use_table_extraction": true,
+    "header_patterns": [
+      "Part No\\.|Heat No\\.|Certificate No\\.|Batch No\\.|Sample No\\.|Test No\\.",
+      "产品编号|熔炼号|证书号|批号|试样号|检测号"
+    ],
+    "merge_cells": true,
+    "validate_headers": true
+  }
+}

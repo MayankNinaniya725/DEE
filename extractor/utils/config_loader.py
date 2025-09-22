@@ -20,7 +20,7 @@ def load_vendor_config(vendor_path):
     if not os.path.exists(vendor_path):
         raise FileNotFoundError(f"Config for vendor '{vendor_path}' not found.")
     
-    with open(vendor_path, 'r') as file:
+    with open(vendor_path, 'r', encoding='utf-8') as file:
         return json.load(file)
 
 def find_vendor_config(vendor, settings):

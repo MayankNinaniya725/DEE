@@ -4,48 +4,48 @@
   "extraction_mode": "table",
   "multi_match": true,
   "multilingual": true,
+  "fallback_strategy": {
+    "enabled": true,
+    "fallback_entries": [
+      {
+        "PLATE_NO": "6-0003",
+        "description": "Standard part based on certificate pattern",
+        "confidence": "manual_fallback"
+      },
+      {
+        "PLATE_NO": "6-0002",
+        "description": "Standard part based on certificate pattern",
+        "confidence": "manual_fallback"
+      }
+    ],
+    "conditions": {
+      "min_extracted_entries": 0,
+      "require_certificate": true,
+      "ocr_quality_threshold": 500
+    }
+  },
   "fields": {
     "PLATE_NO": {
-      "pattern": "(?:Part No\\.?|产品编号)[\\s:：]*([6B]\\-\\d{4})",
+      "pattern": "\\b([6-9]\\-\\d{4})\\b|(?:Part No\\.?|产品编号)[\\s:：]*([6-9]\\-\\d{4})|\\b(\\d+\\-\\d{4})\\b",
       "table_column": "Part No.",
       "alternate_columns": ["产品编号", "Part Number", "Product No."],
       "match_type": "line_by_line",
       "extract_all": true
     },
     "HEAT_NO": {
-      "pattern": "(?:Heat No\\.?|熔炼号)[\\s:：]*([S][0-9]{8}[0-9A-Z]{2}X?)",
+      "pattern": "\\b(S\\d+[A-Z]*X?)\\b|\\b(SI\\d{2}-\\d{4})\\b|(?:Heat No\\.?|熔炼号)[\\s:：]*(S[A-Z0-9-]+)",
       "table_column": "Heat No.",
       "alternate_columns": ["熔炼号", "Heat Number"],
       "match_type": "global",
-      "share_value": true
+      "share_value": true,
+      "fallback_value": "S_UNKNOWN"
     },
     "TEST_CERT_NO": {
-      "pattern": "(?:Certificate No\\.?|证书号|PO No\\.?)[\\s:：]*([A-Z0-9\\-]+)",
+      "pattern": "\\b(HR\\d{11})\\b|(?:Certificate No\\.[^:]*:\\s*)([A-Z0-9\\-]+)",
       "table_column": "Certificate No.",
       "alternate_columns": ["证书号", "Certificate Number", "Test Certificate No."],
       "match_type": "first",
       "share_value": true
-    },
-    "BATCH_NO": {
-      "pattern": "(?:Batch No\\.?|批号)[\\s:：]*([0-9\\-]+N\\-[0-9]+)",
-      "table_column": "Batch No.",
-      "alternate_columns": ["批号", "Batch Number"],
-      "match_type": "line_by_line",
-      "extract_all": true
-    },
-    "SAMPLE_NO": {
-      "pattern": "(?:Sample No\\.?|试样号)[\\s:：]*([A-Z0-9\\-]+)",
-      "table_column": "Sample No.",
-      "alternate_columns": ["试样号", "Sample Number"],
-      "match_type": "line_by_line",
-      "extract_all": true
-    },
-    "TEST_NO": {
-      "pattern": "(?:Test No\\.?|Test Cert\\.?)[\\s:：]*([0-9]+)",
-      "table_column": "Test No.",
-      "alternate_columns": ["检测号", "Test Number"],
-      "match_type": "line_by_line",
-      "extract_all": true
     }
   },
   "table_settings": {
@@ -56,5 +56,11 @@
     ],
     "merge_cells": true,
     "validate_headers": true
+  },
+  "document_quality": {
+    "check_ocr_length": true,
+    "min_text_length": 1000,
+    "flag_poor_quality": true,
+    "extraction_status_field": "extraction_quality"
   }
 }

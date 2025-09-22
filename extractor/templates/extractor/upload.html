@@ -909,13 +909,13 @@
     <div class="header">
         <h1>Upload PDF for Extraction</h1>
         <div class="header-buttons">
-            <a href="{% url 'dashboard' %}" class="dashboard-link">View Dashboard</a>
+            <a href="{% url 'dashboard' %}" class="dashboard-link" target="_blank">View Dashboard</a>
             {% if user.is_authenticated %}
-                <a href="/admin/" class="dashboard-link admin-link">
+                <a href="/admin/" class="dashboard-link admin-link" target="_blank">
                     <i class="fas fa-user-shield"></i> Go to Admin
                 </a>
             {% else %}
-                <a href="/admin/login/" class="dashboard-link admin-link">
+                <a href="/admin/login/" class="dashboard-link admin-link" target="_blank">
                     <i class="fas fa-sign-in-alt"></i> Login to Admin
                 </a>
             {% endif %}
@@ -1026,32 +1026,107 @@
                 });
                 const data = await response.json();
 
-                // Handle vendor validation error
+                // Handle error responses
                 if (data.status === 'error') {
                     resetUI();
                     
-                    // Show vendor validation error notification
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Vendor Validation Failed',
-                        text: data.message,
-                        html: `
-                            <div style="text-align: left; margin-top: 15px;">
-                                <p style="margin-bottom: 10px; font-weight: bold;">${data.message}</p>
-                                ${data.details ? `<p style="margin-bottom: 8px; color: #666;"><strong>Details:</strong> ${data.details}</p>` : ''}
-                                ${data.detected_vendor ? `<p style="margin-bottom: 5px; color: #666;"><strong>Detected vendor:</strong> ${data.detected_vendor}</p>` : ''}
-                                ${data.confidence ? `<p style="color: #666;"><strong>Confidence:</strong> ${Math.round(data.confidence * 100)}%</p>` : ''}
-                            </div>
-                        `,
-                        confirmButtonText: 'Select Correct Vendor',
-                        confirmButtonColor: '#FF4B2B',
-                        width: '500px',
-                        background: 'linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)',
-                        color: 'white'
-                    }).then(() => {
-                        // Focus on vendor selection
-                        document.getElementById('vendor').focus();
-                    });
+                    // Handle different error types
+                    if (data.type === 'vendor_not_found' || data.type === 'config_missing') {
+                        // Vendor or config issues
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Configuration Error',
+                            text: data.message,
+                            confirmButtonText: 'Try Again',
+                            confirmButtonColor: '#FF4B2B',
+                            background: 'linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)',
+                            color: 'white'
+                        });
+                    } else if (data.type === 'vendor_mismatch') {
+                        // Vendor mismatch error
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Vendor Mismatch',
+                            text: data.message,
+                            html: `
+                                <div style="text-align: left; margin-top: 15px;">
+                                    <p style="margin-bottom: 10px; font-weight: bold;">${data.message}</p>
+                                    <p style="margin-bottom: 5px; color: #666;"><strong>Originally uploaded for:</strong> ${data.original_vendor}</p>
+                                    <p style="color: #666;"><strong>Currently selected:</strong> ${data.new_vendor}</p>
+                                </div>
+                            `,
+                            confirmButtonText: 'Select Correct Vendor',
+                            confirmButtonColor: '#F09819',
+                            background: 'linear-gradient(135deg, #F09819 0%, #EDDE5D 100%)',
+                            color: 'white'
+                        }).then(() => {
+                            document.getElementById('vendor').focus();
+                        });
+                    } else if (data.detected_vendor || data.confidence) {
+                        // Vendor validation error with detection details
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Vendor Validation Failed',
+                            text: data.message,
+                            html: `
+                                <div style="text-align: left; margin-top: 15px;">
+                                    <p style="margin-bottom: 10px; font-weight: bold;">${data.message}</p>
+                                    ${data.details ? `<p style="margin-bottom: 8px; color: #666;"><strong>Details:</strong> ${data.details}</p>` : ''}
+                                    ${data.detected_vendor ? `<p style="margin-bottom: 5px; color: #666;"><strong>Detected vendor:</strong> ${data.detected_vendor}</p>` : ''}
+                                    ${data.confidence ? `<p style="color: #666;"><strong>Confidence:</strong> ${Math.round(data.confidence * 100)}%</p>` : ''}
+                                </div>
+                            `,
+                            confirmButtonText: 'Select Correct Vendor',
+                            confirmButtonColor: '#FF4B2B',
+                            width: '500px',
+                            background: 'linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)',
+                            color: 'white'
+                        }).then(() => {
+                            document.getElementById('vendor').focus();
+                        });
+                    } else {
+                        // Generic error
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Upload Error',
+                            text: data.message,
+                            confirmButtonText: 'Try Again',
+                            confirmButtonColor: '#FF4B2B',
+                            background: 'linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)',
+                            color: 'white'
+                        });
+                    }
+                    return;
+                }
+
+                // Handle warning responses (like duplicates)
+                if (data.status === 'warning') {
+                    resetUI();
+                    
+                    if (data.type === 'duplicate') {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Duplicate PDF',
+                            text: data.message,
+                            html: `
+                                <div style="text-align: left; margin-top: 15px;">
+                                    <p style="margin-bottom: 10px; font-weight: bold;">${data.message}</p>
+                                    ${data.processed_date ? `<p style="color: #666;"><strong>Processed on:</strong> ${data.processed_date}</p>` : ''}
+                                </div>
+                            `,
+                            confirmButtonText: 'Upload Different PDF',
+                            confirmButtonColor: '#F09819',
+                            background: 'linear-gradient(135deg, #F09819 0%, #EDDE5D 100%)',
+                            color: 'white'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Warning',
+                            text: data.message,
+                            confirmButtonColor: '#F09819'
+                        });
+                    }
                     return;
                 }
 
@@ -1062,7 +1137,7 @@
                         icon: 'success',
                         title: 'Upload Successful!',
                         text: data.message,
-                        timer: 2000,
+                        timer: 3000,
                         showConfirmButton: false,
                         background: 'linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)',
                         color: 'white'
@@ -1074,14 +1149,7 @@
                         pollTaskStatus(data.task_id);
                     }
                     
-                    // Redirect to dashboard after a short delay
-                    setTimeout(() => {
-                        if (data.redirect) {
-                            window.location.href = data.redirect.startsWith('/') ? data.redirect : '/' + data.redirect;
-                        } else {
-                            window.location.href = '{% url "dashboard" %}';
-                        }
-                    }, 2500);
+                    // Stay on the upload page - no redirect
                     return;
                 }
 
@@ -1101,17 +1169,20 @@
                 if (data.task_id) {
                     localStorage.setItem('lastTaskId', data.task_id);
                     pollTaskStatus(data.task_id);
+                    
+                    // Show processing notification
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Processing Started',
+                        text: 'PDF processing has started. Please wait for completion.',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        background: 'linear-gradient(135deg, #4776E6 0%, #8E54E9 100%)',
+                        color: 'white'
+                    });
                 }
                 
-                if (data.redirect) {
-                    setTimeout(() => {
-                        window.location.href = data.redirect.startsWith('/') ? data.redirect : '/' + data.redirect;
-                    }, 1000);
-                } else {
-                    setTimeout(() => {
-                        window.location.href = '{% url "dashboard" %}';
-                    }, 1000);
-                }
+                // Stay on upload page - no redirect
 
             } catch (error) {
                 console.error('Upload error:', error);
@@ -1185,9 +1256,28 @@
             const progressPercent = document.getElementById('progressPercent');
             const progressPhase = document.getElementById('progressPhase');
             
+            let pollCount = 0;
+            const maxPolls = 300; // Stop polling after 10 minutes (300 * 2 seconds)
+            let extractionCompleted = false;
+            
             const pollInterval = setInterval(async () => {
+                pollCount++;
+                
+                // Stop polling after maximum attempts to prevent infinite polling
+                if (pollCount > maxPolls) {
+                    clearInterval(pollInterval);
+                    console.log('Polling stopped after maximum attempts');
+                    return;
+                }
+                
                 try {
                     const response = await fetch(`/progress/${taskId}/`);
+                    
+                    // Check if response is ok
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
                     const data = await response.json();
                     
                     // Update progress bar with the percentage from backend
@@ -1202,23 +1292,39 @@
                     // Check if extraction is complete
                     if (data.state === 'SUCCESS' || percent >= 100) {
                         clearInterval(pollInterval);
+                        extractionCompleted = true;
                         
                         // Complete progress UI
                         progressBar.style.width = '100%';
                         progressBar.setAttribute('aria-valuenow', 100);
                         progressPercent.textContent = '100%';
                         
-                        // Show success notification
+                        // Show success notification with action buttons
                         if (data.message.includes('✅')) {
                             // Success case
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Extraction Complete!',
                                 text: data.message,
-                                timer: 3000,
-                                showConfirmButton: false,
+                                showCancelButton: true,
+                                confirmButtonText: 'View Dashboard',
+                                cancelButtonText: 'Upload Another PDF',
+                                confirmButtonColor: '#43E97B',
+                                cancelButtonColor: '#4776E6',
                                 background: 'linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)',
-                                color: 'white'
+                                color: 'white',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    // Open dashboard in new tab
+                                    window.open('{% url "dashboard" %}', '_blank');
+                                }
+                                // Reset form for new upload (for both options)
+                                resetUI();
+                                document.getElementById('uploadForm').reset();
+                                document.getElementById('file-name').textContent = '';
+                                document.getElementById('drop-area').classList.remove('file-selected');
                             });
                         } else if (data.message.includes('⚠️')) {
                             // Partial success case
@@ -1226,55 +1332,127 @@
                                 icon: 'warning',
                                 title: 'Partial Extraction',
                                 text: data.message,
-                                timer: 3000,
-                                showConfirmButton: false,
+                                showCancelButton: true,
+                                confirmButtonText: 'View Dashboard',
+                                cancelButtonText: 'Upload Another PDF',
+                                confirmButtonColor: '#F09819',
+                                cancelButtonColor: '#4776E6',
                                 background: 'linear-gradient(135deg, #F09819 0%, #EDDE5D 100%)',
-                                color: 'white'
+                                color: 'white',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    // Open dashboard in new tab
+                                    window.open('{% url "dashboard" %}', '_blank');
+                                }
+                                // Reset form for new upload (for both options)
+                                resetUI();
+                                document.getElementById('uploadForm').reset();
+                                document.getElementById('file-name').textContent = '';
+                                document.getElementById('drop-area').classList.remove('file-selected');
+                            });
+                        } else {
+                            // Generic success case (fallback)
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Extraction Complete!',
+                                text: data.message || 'PDF processing completed successfully!',
+                                showCancelButton: true,
+                                confirmButtonText: 'View Dashboard',
+                                cancelButtonText: 'Upload Another PDF',
+                                confirmButtonColor: '#43E97B',
+                                cancelButtonColor: '#4776E6',
+                                background: 'linear-gradient(135deg, #43E97B 0%, #38F9D7 100%)',
+                                color: 'white',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    // Open dashboard in new tab
+                                    window.open('{% url "dashboard" %}', '_blank');
+                                }
+                                // Reset form for new upload (for both options)
+                                resetUI();
+                                document.getElementById('uploadForm').reset();
+                                document.getElementById('file-name').textContent = '';
+                                document.getElementById('drop-area').classList.remove('file-selected');
                             });
                         }
                         
                         // Clear task ID from storage
                         localStorage.removeItem('lastTaskId');
                         
-                        // Auto-refresh dashboard after delay
+                        // Reset UI to allow for new uploads
                         setTimeout(() => {
-                            window.location.href = '{% url "dashboard" %}';
-                        }, 2000);
+                            if (!extractionCompleted) return; // Don't reset if dialog is open
+                            resetUI();
+                            document.getElementById('uploadForm').reset();
+                            document.getElementById('file-name').textContent = '';
+                            document.getElementById('drop-area').classList.remove('file-selected');
+                        }, 3000);
                     } 
                     else if (data.state === 'FAILURE' || data.message.includes('❌')) {
                         clearInterval(pollInterval);
                         resetUI();
                         
-                        // Show error notification
+                        // Show error notification with retry option
                         Swal.fire({
                             icon: 'error',
                             title: 'Extraction Failed',
                             text: data.message || 'Extraction failed. Please try again.',
-                            timer: 5000,
-                            showConfirmButton: true,
+                            showCancelButton: true,
+                            confirmButtonText: 'Try Again',
+                            cancelButtonText: 'Upload Different PDF',
+                            confirmButtonColor: '#FF4B2B',
+                            cancelButtonColor: '#6c757d',
                             background: 'linear-gradient(135deg, #FF416C 0%, #FF4B2B 100%)',
                             color: 'white',
-                            confirmButtonColor: '#FF4B2B'
+                            allowOutsideClick: false,
+                            allowEscapeKey: false
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Retry with same file (just show upload button again)
+                                resetUI();
+                            } else {
+                                // Reset form completely for new upload
+                                resetUI();
+                                document.getElementById('uploadForm').reset();
+                                document.getElementById('file-name').textContent = '';
+                                document.getElementById('drop-area').classList.remove('file-selected');
+                            }
                         });
                         
                         // Clear task ID from storage
                         localStorage.removeItem('lastTaskId');
-                        
-                        // Show extract button again
-                        document.getElementById('submitBtn').style.display = 'block';
                     }
                 } catch (error) {
                     console.error('Error polling task status:', error);
-                    clearInterval(pollInterval);
-                    resetUI();
                     
-                    // Show error notification
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Connection Error',
-                        text: 'Failed to check extraction progress. Please refresh the page.',
-                        confirmButtonColor: '#FF4B2B'
-                    });
+                    // Only show connection error if extraction hasn't completed yet
+                    if (!extractionCompleted) {
+                        clearInterval(pollInterval);
+                        resetUI();
+                        
+                        // Show more user-friendly error message
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Connection Issue',
+                            text: 'Lost connection while checking progress. The extraction may have completed. Please check the dashboard or try refreshing the page.',
+                            showCancelButton: true,
+                            confirmButtonText: 'Check Dashboard',
+                            cancelButtonText: 'Stay Here',
+                            confirmButtonColor: '#4776E6',
+                            cancelButtonColor: '#6c757d'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.open('{% url "dashboard" %}', '_blank');
+                            }
+                        });
+                        
+                        // Clear task ID from storage
+                        localStorage.removeItem('lastTaskId');
+                    }
                 }
             }, 2000); // Poll every 2 seconds as requested
         }

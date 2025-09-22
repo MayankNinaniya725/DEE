@@ -65,15 +65,15 @@ JAZZMIN_SETTINGS = {
     # Links to put along the top menu
     "topmenu_links": [
         {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "Upload PDF", "url": "upload_pdf"},
-        {"name": "Dashboard", "url": "dashboard"},
+        {"name": "Upload PDF", "url": "upload_pdf", "new_window": True},
+        {"name": "Dashboard", "url": "dashboard", "new_window": True},
     ],
     #############
     # User Menu #
     #############
     # Additional links to include in the user menu on the top right ("app" url type is not allowed)
     "usermenu_links": [
-        {"name": "Upload PDF", "url": "upload_pdf", "icon": "fas fa-upload"},
+        {"name": "Upload PDF", "url": "upload_pdf", "icon": "fas fa-upload", "new_window": True},
     ],
     #############
     # Side Menu #

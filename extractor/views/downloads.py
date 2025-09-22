@@ -540,3 +540,170 @@ to the corresponding PDF file in this package.
         logger.error(f"Error creating complete PDF package: {str(e)}", exc_info=True)
         messages.error(request, "Could not create the complete PDF package. See logs for details.")
         return redirect("dashboard")
+
+
+def download_package_api(request, file_id):
+    """
+    Download extracted files as a zip package for a specific file_id.
+    
+    Creates a ZIP file containing all extracted files for the given file_id.
+    The file_id corresponds to the PDF's primary key in the database.
+    
+    This endpoint simulates the outputs/<file_id>/ structure requested:
+    - Locates all files for the given file_id (PDF ID)
+    - Creates a zip on-the-fly without storing it permanently
+    - Returns proper 404 JSON error if files don't exist
+    - Works inside Docker with container-relative paths
+    
+    Args:
+        request: Django HTTP request
+        file_id: ID of the PDF file (corresponds to UploadedPDF.id)
+    
+    Returns:
+        FileResponse: ZIP file download or JSON error response
+    """
+    from django.http import JsonResponse, FileResponse
+    from django.conf import settings
+    from ..models import ExtractedData, Vendor, UploadedPDF
+    from ..views import create_extraction_excel  # Import from main views
+    
+    try:
+        # Get the PDF object by ID
+        try:
+            pdf = UploadedPDF.objects.get(id=file_id)
+        except UploadedPDF.DoesNotExist:
+            return JsonResponse({
+                'error': f'File with ID {file_id} not found',
+                'status': 404
+            }, status=404)
+        
+        # Check if there's any extracted data for this PDF
+        from ..models import ExtractedData
+        extracted_data = ExtractedData.objects.filter(pdf=pdf)
+        if not extracted_data.exists():
+            return JsonResponse({
+                'error': f'No extracted files found for file ID {file_id}',
+                'status': 404
+            }, status=404)
+        
+        # Create temporary directory for organizing files
+        with tempfile.TemporaryDirectory() as temp_dir:
+            # Create the outputs/<file_id> structure
+            output_dir = os.path.join(temp_dir, f'outputs', str(file_id))
+            os.makedirs(output_dir, exist_ok=True)
+            
+            pdf_filename = os.path.basename(pdf.file.name)
+            pdf_name_without_ext = os.path.splitext(pdf_filename)[0]
+            
+            # Track files we successfully add to the package
+            files_added = 0
+            
+            # Copy original PDF to outputs/<file_id>/
+            if hasattr(pdf, 'file') and pdf.file and os.path.exists(pdf.file.path):
+                try:
+                    original_pdf_path = os.path.join(output_dir, f'original_{pdf_filename}')
+                    shutil.copy2(pdf.file.path, original_pdf_path)
+                    files_added += 1
+                except Exception as e:
+                    logger.warning(f"Could not copy original PDF: {str(e)}")
+            
+            # Copy all extracted files for this PDF
+            extracted_base_dir = os.path.join(settings.MEDIA_ROOT, 'extracted')
+            if os.path.exists(extracted_base_dir):
+                for root, dirs, files in os.walk(extracted_base_dir):
+                    for file in files:
+                        # Check if file belongs to this PDF
+                        if file.startswith(pdf_name_without_ext):
+                            src_path = os.path.join(root, file)
+                            dest_path = os.path.join(output_dir, file)
+                            try:
+                                shutil.copy2(src_path, dest_path)
+                                files_added += 1
+                            except Exception as e:
+                                logger.warning(f"Could not copy extracted file {file}: {str(e)}")
+            
+            # Create Excel summary file
+            try:
+                excel_path = os.path.join(output_dir, f'{pdf_name_without_ext}_extraction_summary.xlsx')
+                create_extraction_excel(excel_path, pdf, extracted_data)
+                files_added += 1
+            except Exception as e:
+                logger.warning(f"Could not create Excel summary: {str(e)}")
+            
+            # Check if we have any files to zip
+            if files_added == 0:
+                return JsonResponse({
+                    'error': f'No files could be prepared for file ID {file_id}',
+                    'status': 404
+                }, status=404)
+            
+            # Create README file
+            try:
+                readme_content = f"""Extracted Files Package for File ID: {file_id}
+========================================
+
+PDF Information:
+- Original Filename: {pdf_filename}
+- Vendor: {pdf.vendor.name if hasattr(pdf, 'vendor') and pdf.vendor else 'Unknown'}
+- Upload Date: {pdf.uploaded_at.strftime('%Y-%m-%d %H:%M:%S') if hasattr(pdf, 'uploaded_at') else 'Unknown'}
+- Total Extracted Fields: {extracted_data.count()}
+
+Package Contents:
+- original_{pdf_filename}: Original uploaded PDF file
+- *_page_*.pdf: Individual extracted PDF pages
+- {pdf_name_without_ext}_extraction_summary.xlsx: Complete extraction data in Excel format
+
+Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+This package was created by the PDF Extraction API endpoint.
+All files are organized in the outputs/{file_id}/ structure as requested.
+"""
+                readme_path = os.path.join(output_dir, 'README.txt')
+                with open(readme_path, 'w', encoding='utf-8') as f:
+                    f.write(readme_content)
+            except Exception as e:
+                logger.warning(f"Could not create README: {str(e)}")
+            
+            # Create ZIP file
+            zip_filename = f"{file_id}_package.zip"
+            zip_buffer = io.BytesIO()
+            
+            try:
+                with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                    # Add all files from the outputs directory structure
+                    outputs_base = os.path.join(temp_dir, 'outputs')
+                    for root, dirs, files in os.walk(outputs_base):
+                        for file in files:
+                            file_path = os.path.join(root, file)
+                            # Preserve the outputs/<file_id>/ structure in the ZIP
+                            arcname = os.path.relpath(file_path, temp_dir)
+                            zipf.write(file_path, arcname=arcname)
+                
+                zip_buffer.seek(0)
+                
+                # Return the ZIP file as download
+                response = FileResponse(
+                    zip_buffer, 
+                    as_attachment=True, 
+                    filename=zip_filename
+                )
+                response['Content-Type'] = 'application/zip'
+                response['Content-Disposition'] = f'attachment; filename="{zip_filename}"'
+                
+                logger.info(f"Successfully created package download for file_id {file_id}")
+                return response
+                
+            except Exception as e:
+                logger.error(f"Error creating ZIP file for file_id {file_id}: {str(e)}", exc_info=True)
+                return JsonResponse({
+                    'error': f'Failed to create ZIP package for file ID {file_id}',
+                    'details': str(e),
+                    'status': 500
+                }, status=500)
+    
+    except Exception as e:
+        logger.error(f"Unexpected error in download_package_api for file_id {file_id}: {str(e)}", exc_info=True)
+        return JsonResponse({
+            'error': 'Internal server error while creating package',
+            'status': 500
+        }, status=500)

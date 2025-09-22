@@ -10,6 +10,9 @@ from typing import Dict, List, Any, Tuple
 
 from .ocr_helper import extract_text_with_ocr
 from .pattern_extractor import extract_patterns_from_text
+from .document_preprocessor import preprocess_pdf_for_extraction
+from .posco_table_parser import extract_posco_table_data
+from .posco_corrections import apply_posco_corrections
 
 # Setup logging
 logger = logging.getLogger(__name__)
@@ -106,7 +109,7 @@ def generate_hash(entry: Dict[str, str], vendor_id: str) -> str:
     return hashlib.md5(key.encode("utf-8")).hexdigest()
 
 def extract_pdf_fields(pdf_path: str, vendor_config: Dict[str, Any], output_folder: str = "extracted_output") -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
-    """Extract fields from PDF using vendor config."""
+    """Extract fields from PDF using vendor config with enhanced processing."""
     logger.info(f"Starting extraction for {pdf_path}")
     results = []
     stats = {
@@ -115,7 +118,8 @@ def extract_pdf_fields(pdf_path: str, vendor_config: Dict[str, Any], output_fold
         "ocr_fallback_pages": [],
         "failed_pages": [],
         "extraction_success": False,
-        "partial_extraction": False
+        "partial_extraction": False,
+        "preprocessing_applied": False
     }
 
     vendor_id = vendor_config.get("vendor_id")
@@ -126,8 +130,41 @@ def extract_pdf_fields(pdf_path: str, vendor_config: Dict[str, Any], output_fold
     vendor_output_dir = os.path.join(output_folder, vendor_name.replace(" ", "_"))
     os.makedirs(vendor_output_dir, exist_ok=True)
 
+    # Document preprocessing for orientation correction
+    preprocessed_path = pdf_path
+    preprocessor = None
+    
     try:
-        with pdfplumber.open(pdf_path) as pdf:
+        # Apply document preprocessing if needed
+        preprocessed_path, preprocessor = preprocess_pdf_for_extraction(pdf_path)
+        if preprocessed_path != pdf_path:
+            stats["preprocessing_applied"] = True
+            logger.info("Document preprocessing applied")
+        
+        # Temporarily disable specialized POSCO parser - use standard extraction
+        # TODO: Re-enable after debugging
+        # if vendor_id.lower() == "posco":
+        #     logger.info("Using POSCO specialized table parser")
+        #     posco_results = extract_posco_table_data(preprocessed_path)
+        #     if posco_results:
+        #         # Convert POSCO results to standard format
+        #         for entry in posco_results:
+        #             entry["Hash"] = generate_hash(entry, vendor_id)
+        #             entry["Vendor"] = vendor_name
+        #             entry["Source PDF"] = os.path.basename(pdf_path)
+        #             entry["Created"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        #             entry["OCR_Used"] = False
+        #             results.append(entry)
+        #         
+        #         stats["extraction_success"] = len(results) > 0
+        #         stats["successful_pages"] = len(set(r.get("page_number", 1) for r in results))
+        #         stats["total_pages"] = stats["successful_pages"]
+        #         
+        #         logger.info(f"POSCO extraction completed: {len(results)} entries found")
+        #         return results, stats
+
+        # Standard extraction process
+        with pdfplumber.open(preprocessed_path) as pdf:
             reader = PdfReader(pdf_path)
             stats["total_pages"] = len(pdf.pages)
 
@@ -139,6 +176,10 @@ def extract_pdf_fields(pdf_path: str, vendor_config: Dict[str, Any], output_fold
                     # Try table extraction first if enabled
                     if vendor_config.get("extraction_mode") == "table":
                         entries = extract_tables_from_page(page, vendor_config)
+                        
+                        # Apply POSCO-specific corrections if vendor is POSCO
+                        if vendor_id.lower() == "posco" and entries:
+                            entries = [apply_posco_corrections(entry) for entry in entries]
 
                     # If no tables found, try text extraction
                     if not entries:
@@ -150,6 +191,10 @@ def extract_pdf_fields(pdf_path: str, vendor_config: Dict[str, Any], output_fold
 
                         if text:
                             entries = extract_patterns_from_text(text, vendor_config)
+                            
+                            # Apply POSCO-specific corrections if vendor is POSCO
+                            if vendor_id.lower() == "posco":
+                                entries = [apply_posco_corrections(entry) for entry in entries]
 
                     if not entries:
                         logger.warning(f"No entries found on page {idx + 1}")
@@ -208,9 +253,18 @@ def extract_pdf_fields(pdf_path: str, vendor_config: Dict[str, Any], output_fold
     except Exception as e:
         logger.error(f"Failed to process PDF {pdf_path}: {e}")
         raise
+    
+    finally:
+        # Clean up preprocessed files
+        if preprocessor:
+            try:
+                preprocessor.cleanup()
+            except Exception as e:
+                logger.warning(f"Error cleaning up preprocessor: {e}")
 
     # Update final statistics
     stats["extraction_success"] = len(results) > 0
     stats["partial_extraction"] = len(results) > 0 and len(stats["failed_pages"]) > 0
 
+    logger.info(f"Extraction completed: {len(results)} entries, {stats['successful_pages']}/{stats['total_pages']} pages processed")
     return results, stats

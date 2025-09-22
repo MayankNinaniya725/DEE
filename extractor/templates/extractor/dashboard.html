@@ -19,8 +19,41 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.20/dist/sweetalert2.min.css">
     <!-- Toastr CSS for notifications -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    <!-- Base notification script -->
-    <script src="{% static 'extractor/js/notifications.js' %}?v={% now 'U' %}"></script>
+    
+    <style>
+        /* Custom notification styling */
+        #notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            width: 350px;
+        }
+        .notification {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease-out;
+        }
+        .notification-success { border-left: 4px solid #28a745; }
+        .notification-error { border-left: 4px solid #dc3545; }
+        .notification-warning { border-left: 4px solid #ffc107; }
+        .notification-info { border-left: 4px solid #17a2b8; }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    </style>
     
     {% if static_debug %}
     <script>
@@ -637,6 +670,9 @@
     </style>
 </head>
 <body>
+    <!-- Notification container -->
+    <div id="notification-container"></div>
+    
     <div class="content">
         <h2 class="section-title">Recent PDF Uploads</h2>
         <table class="table table-bordered table-striped">
@@ -649,9 +685,9 @@
                 </tr>
             </thead>
             
-            <tbody>
+            <tbody id="pdfTableBody">
                 {% for pdf in recent_pdfs %}
-                <tr>
+                <tr data-pdf-id="{{ pdf.id }}">
                     <td>{{ pdf.file.name|default:"N/A" }}</td>
                     <td>{{ pdf.vendor.name|default:"N/A" }}</td>
                     <td>
@@ -662,7 +698,12 @@
                         {% elif pdf.status == 'PENDING' %}
                             <span class="badge bg-secondary">Pending</span>
                         {% elif pdf.status == 'ERROR' %}
-                            <span class="badge bg-danger">Error</span>
+                            <span class="badge bg-danger" 
+                                  title="Upload failed due to vendor validation or processing error. Check that the correct vendor was selected." 
+                                  data-bs-toggle="tooltip" 
+                                  data-bs-placement="top">
+                                Error
+                            </span>
                         {% else %}
                             <span class="badge bg-light text-dark">{{ pdf.status }}</span>
                         {% endif %}
@@ -678,7 +719,7 @@
     <div class="header">
         <h1>Extraction Dashboard</h1>
         <div class="header-buttons">
-            <a href="{% url 'upload_pdf' %}" class="btn">Upload New PDF</a>
+            <a href="{% url 'upload_pdf' %}" class="btn" target="_blank">Upload New PDF</a>
             {% if user.is_authenticated %}
                 <a href="{% url 'admin:index' %}" class="btn btn-secondary admin-btn">
                     <i class="fas fa-user-shield"></i> Go to Admin
@@ -795,9 +836,6 @@
                 </a>
                 <a href="{% url 'download_pdfs_with_excel' %}" class="download-btn" style="background: linear-gradient(to right, #FF416C, #FF4B2B);">
                     <i class="fas fa-file-archive"></i> Download All PDFs + Excel
-                </a>
-                <a href="{% url 'download_all_pdfs_package' %}" class="download-btn" style="background: linear-gradient(to right, #6a11cb, #2575fc);">
-                    <i class="fas fa-download"></i> Download Package
                 </a>
                 <a href="{% url 'regenerate_excel' %}" class="download-btn" style="background: linear-gradient(to right, #28a745, #20c997);">
                     <i class="fas fa-sync-alt"></i> Regenerate Excel
@@ -954,23 +992,98 @@
         {% endif %}
 
         <div class="refresh-info">
-            <p>Last updated: {{ now|date:"F j, Y, g:i a" }} <a href="javascript:location.reload();" class="btn btn-sm btn-outline-primary ms-2">Refresh Now</a></p>
+            <p>
+                Last updated: {{ now|date:"F j, Y, g:i a" }} 
+                <a href="javascript:refreshDashboard();" class="btn btn-sm btn-outline-primary ms-2">
+                    <i class="fas fa-sync-alt"></i> Refresh Now
+                </a>
+                <small class="text-muted ms-2">
+                    <i class="fas fa-circle text-success" id="autoRefreshIndicator"></i>
+                    Auto-refresh active (5s)
+                </small>
+            </p>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js?v=20250831"></script>
     <script>
-        // Auto-hide all notifications
+        // Configure toastr default options
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": true,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
+        
+        // Process Django messages on page load
         document.addEventListener('DOMContentLoaded', function() {
-            // Get all notifications in the container
-            const notifications = document.querySelectorAll('#notification-container .notification');
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags == 'success' %}
+                        // Check if it's an extraction completion message
+                        if ("{{ message }}".toLowerCase().includes('extraction completed')) {
+                            // Extract field count if present
+                            const match = "{{ message }}".match(/(\d+)\s*fields/);
+                            const fieldCount = match ? parseInt(match[1]) : 0;
+                            showExtractionNotification(fieldCount, 'completed');
+                        } else {
+                            showEnhancedNotification("{{ message|escapejs }}", "success");
+                        }
+                    {% elif message.tags == 'warning' %}
+                        if ("{{ message }}".toLowerCase().includes('partial extraction')) {
+                            const match = "{{ message }}".match(/(\d+)\s*fields/);
+                            const fieldCount = match ? parseInt(match[1]) : 0;
+                            showExtractionNotification(fieldCount, 'partial_success_ocr');
+                        } else {
+                            showEnhancedNotification("{{ message|escapejs }}", "warning");
+                        }
+                    {% elif message.tags == 'error' %}
+                        {% if "SHOW_DETAILS:" in message|stringformat:"s" %}
+                            // This is a detailed error message, fetch and show details
+                            const parts = "{{ message|escapejs }}".split('||SHOW_DETAILS:');
+                            const errorId = parts[1];
+                            fetch('{% url "dashboard" %}?get_error_details=' + errorId)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.details) {
+                                        showZipCreationError(data.details);
+                                    } else {
+                                        showEnhancedNotification(parts[0], "error");
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error fetching error details:', error);
+                                    showEnhancedNotification(parts[0], "error");
+                                });
+                        {% else %}
+                            showEnhancedNotification("{{ message|escapejs }}", "error");
+                        {% endif %}
+                    {% else %}
+                        showEnhancedNotification("{{ message|escapejs }}", "info");
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
             
-            // Set timeouts to hide each notification
+            // Initialize notification system
+            validateAllFileLinks();
+            
+            // Auto-hide legacy notifications if any
+            const notifications = document.querySelectorAll('#notification-container .notification');
             notifications.forEach((notification, index) => {
                 setTimeout(() => {
                     notification.style.animation = 'fadeOut 0.5s ease-out';
                     setTimeout(() => notification.remove(), 500);
-                }, 5000 + (index * 500)); // Stagger the disappearance
+                }, 5000 + (index * 500));
             });
         });
     
@@ -1606,6 +1719,181 @@
             "showMethod": "fadeIn",
             "hideMethod": "fadeOut"
         };
+    </script>
+    
+    <!-- Auto-refresh functionality for dashboard -->
+    <script>
+        let lastUpdateTimestamp = null;
+        let refreshInterval = null;
+        let currentPdfIds = new Set();
+        
+        // Initialize current PDF IDs on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('#pdfTableBody tr[data-pdf-id]');
+            rows.forEach(row => {
+                const pdfId = row.getAttribute('data-pdf-id');
+                if (pdfId) currentPdfIds.add(parseInt(pdfId));
+            });
+            
+            // Start auto-refresh
+            startAutoRefresh();
+        });
+        
+        function startAutoRefresh() {
+            // Check for updates every 5 seconds
+            refreshInterval = setInterval(checkForUpdates, 5000);
+            console.log('🔄 Dashboard auto-refresh started (5 second intervals)');
+        }
+        
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+                console.log('⏹️ Dashboard auto-refresh stopped');
+            }
+        }
+        
+        async function checkForUpdates() {
+            try {
+                const url = lastUpdateTimestamp 
+                    ? `/api/latest-pdfs/?since=${lastUpdateTimestamp}`
+                    : '/api/latest-pdfs/';
+                    
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.pdfs && data.pdfs.length > 0) {
+                    // Check if there are any new PDFs
+                    const newPdfs = data.pdfs.filter(pdf => !currentPdfIds.has(pdf.id));
+                    
+                    if (newPdfs.length > 0) {
+                        console.log(`📄 Found ${newPdfs.length} new PDF(s), updating table...`);
+                        updatePdfTable(newPdfs);
+                        
+                        // Show notification for new uploads
+                        showUpdateNotification(newPdfs);
+                    }
+                    
+                    // Update timestamp for next request
+                    lastUpdateTimestamp = data.timestamp;
+                }
+            } catch (error) {
+                console.error('Error checking for updates:', error);
+                // Don't show error notifications to avoid spam
+            }
+        }
+        
+        function updatePdfTable(newPdfs) {
+            const tableBody = document.getElementById('pdfTableBody');
+            if (!tableBody) return;
+            
+            // Remove "No PDFs" row if it exists
+            const noDataRow = tableBody.querySelector('td[colspan]');
+            if (noDataRow) {
+                noDataRow.parentElement.remove();
+            }
+            
+            // Add new PDF rows at the top
+            newPdfs.forEach(pdf => {
+                const newRow = createPdfRow(pdf);
+                tableBody.insertBefore(newRow, tableBody.firstChild);
+                currentPdfIds.add(pdf.id);
+                
+                // Highlight new row briefly
+                newRow.classList.add('table-success');
+                setTimeout(() => {
+                    newRow.classList.remove('table-success');
+                }, 3000);
+            });
+            
+            // Reinitialize tooltips for new rows
+            initializeTooltips();
+        }
+        
+        function createPdfRow(pdf) {
+            const row = document.createElement('tr');
+            row.setAttribute('data-pdf-id', pdf.id);
+            
+            // Create status badge
+            let statusBadge = '';
+            switch(pdf.status) {
+                case 'COMPLETED':
+                    statusBadge = '<span class="badge bg-success">Completed</span>';
+                    break;
+                case 'PROCESSING':
+                    statusBadge = '<span class="badge bg-warning text-dark">Processing</span>';
+                    break;
+                case 'PENDING':
+                    statusBadge = '<span class="badge bg-secondary">Pending</span>';
+                    break;
+                case 'ERROR':
+                    statusBadge = '<span class="badge bg-danger" title="Upload failed due to vendor validation or processing error. Check that the correct vendor was selected." data-bs-toggle="tooltip" data-bs-placement="top">Error</span>';
+                    break;
+                default:
+                    statusBadge = `<span class="badge bg-light text-dark">${pdf.status}</span>`;
+            }
+            
+            row.innerHTML = `
+                <td>${pdf.filename}</td>
+                <td>${pdf.vendor_name}</td>
+                <td>${statusBadge}</td>
+                <td>${pdf.uploaded_at_display}</td>
+            `;
+            
+            return row;
+        }
+        
+        function showUpdateNotification(newPdfs) {
+            // Count errors vs successful uploads
+            const errorCount = newPdfs.filter(pdf => pdf.status === 'ERROR').length;
+            const successCount = newPdfs.length - errorCount;
+            
+            let message = '';
+            let type = 'info';
+            
+            if (errorCount > 0 && successCount > 0) {
+                message = `📊 ${newPdfs.length} new upload(s): ${successCount} successful, ${errorCount} failed`;
+                type = 'warning';
+            } else if (errorCount > 0) {
+                message = `❌ ${errorCount} new upload(s) failed (check vendor selection)`;
+                type = 'error';
+            } else {
+                message = `✅ ${successCount} new PDF(s) uploaded successfully`;
+                type = 'success';
+            }
+            
+            // Show toastr notification
+            toastr[type](message, 'Dashboard Updated');
+        }
+        
+        // Stop auto-refresh when page becomes hidden (tab switched)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                stopAutoRefresh();
+            } else {
+                startAutoRefresh();
+            }
+        });
+        
+        // Manual refresh button
+        function refreshDashboard() {
+            location.reload();
+        }
+    </script>
+
+    <!-- Initialize Bootstrap tooltips -->
+    <script>
+        function initializeTooltips() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        }
+        
+        // Initialize all tooltips on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTooltips();
+        });
     </script>
 </body>
 </html>

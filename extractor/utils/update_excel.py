@@ -73,7 +73,7 @@ def update_master_excel():
                         'PLATE_NO': '',
                         'HEAT_NO': '',
                         'TEST_CERT_NO': '',
-                        'Filename': os.path.basename(pdf.file.name),
+                        'Filename': f"page_1.pdf",
                         'Page': 1,
                         'Source PDF': pdf.file.name,
                         'Created': pdf.uploaded_at.strftime('%Y-%m-%d %H:%M:%S'),
@@ -101,13 +101,23 @@ def update_master_excel():
                     elif test_cert_no and f"TEST_CERT_NO_{test_cert_no}" in pdf_data['page_numbers']:
                         page_number = pdf_data['page_numbers'][f"TEST_CERT_NO_{test_cert_no}"]
                     
+                    # Generate combination-based filename
+                    plate_safe = plate_no.replace('/', '-') if plate_no else ''
+                    heat_safe = heat_no.replace('/', '-') if heat_no else ''
+                    test_cert_safe = test_cert_no.replace('/', '-') if test_cert_no else ''
+                    
+                    if plate_safe or heat_safe or test_cert_safe:
+                        combination_filename = f"{plate_safe}_{heat_safe}_{test_cert_safe}.pdf"
+                    else:
+                        combination_filename = f"page_{page_number}.pdf"
+                    
                     row = {
                         'Sr No': sr_no,
                         'Vendor': vendor.name,
                         'PLATE_NO': plate_no,
                         'HEAT_NO': heat_no,
                         'TEST_CERT_NO': test_cert_no,
-                        'Filename': os.path.basename(pdf.file.name),
+                        'Filename': combination_filename,
                         'Page': page_number,
                         'Source PDF': pdf.file.name,
                         'Created': pdf.uploaded_at.strftime('%Y-%m-%d %H:%M:%S'),
@@ -129,13 +139,30 @@ def update_master_excel():
         df = pd.DataFrame(data_list)
         
         # Save to Excel
-        backups_dir = os.path.join(settings.MEDIA_ROOT, "backups")
+        logs_dir = settings.BASE_DIR / 'logs'
+        backups_dir = settings.MEDIA_ROOT / 'backups'
+        
+        # Ensure both directories exist
+        os.makedirs(logs_dir, exist_ok=True)
         os.makedirs(backups_dir, exist_ok=True)
-        filename = os.path.join(backups_dir, "master.xlsx")
+        
+        # Save copy in logs directory
+        logs_filename = logs_dir / 'master_log.xlsx'
+        backups_filename = backups_dir / 'master.xlsx'
         sheet_name = timezone.localdate().isoformat()
         
-        with pd.ExcelWriter(filename, engine='openpyxl') as writer:
-            df.to_excel(writer, sheet_name=sheet_name, index=False)
+        # Save to both locations
+        try:
+            with pd.ExcelWriter(logs_filename, engine='openpyxl') as writer:
+                df.to_excel(writer, sheet_name=sheet_name, index=False)
+            logger.info(f"Saved Excel file to {logs_filename}")
+            
+            with pd.ExcelWriter(backups_filename, engine='openpyxl') as writer:
+                df.to_excel(writer, sheet_name=sheet_name, index=False)
+            logger.info(f"Saved Excel file to {backups_filename}")
+        except Exception as e:
+            logger.error(f"Error saving Excel files: {str(e)}", exc_info=True)
+            raise  # Re-raise the exception after logging
         
         logger.info(f"Successfully updated master Excel file with {len(data_list)} entries")
         return True

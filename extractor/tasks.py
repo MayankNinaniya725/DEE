@@ -171,6 +171,13 @@ def process_pdf_file(self, uploaded_pdf_id, vendor_config):
         uploaded_pdf.status = 'COMPLETED'
         uploaded_pdf.save()
         
+        # Update master Excel file with the new data (restore original functionality)
+        try:
+            from .utils.update_excel import update_master_excel
+            update_master_excel()
+        except Exception as e:
+            logger.error(f"Error updating master Excel file: {str(e)}", exc_info=True)
+
         # Phase 4: Finalizing (95%)
         self.update_state(state='PROGRESS', meta={
             'phase': 'finalizing',
@@ -178,6 +185,7 @@ def process_pdf_file(self, uploaded_pdf_id, vendor_config):
             'total': 4,
             'progress': 95
         })
+        
         logger.info(f"Extracted {extraction_count} fields from PDF {uploaded_pdf.file.name}")
 
         result_status = "partial_success_ocr" if extraction_stats.get("partial_extraction") else "completed"
